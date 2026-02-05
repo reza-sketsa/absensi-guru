@@ -12,7 +12,14 @@
         <h1>Absensi Guru</h1>
         <nav>
             <a href="/">Home</a>
-            <a href="/login">Login</a>
+            @guest
+                <a href="/login">Login</a>
+            @else
+                <form action="/logout" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit">Logout</button>
+                </form>
+            @endguest
             <a href="/absen">Absensi</a>
             <a href="/nilai">Nilai</a>
             <a href="/data">Data</a>

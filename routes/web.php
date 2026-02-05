@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
+
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,8 +24,4 @@ Route::get('/siswa', function () {
     return view('Siswa.data');
 });
 
-Route::get('/login', function () {
-    return view('Auth.login');
-});
-
-Route::get('/dashboard', [AdminController::class, 'index']);
+Route::get('/dashboard', [AdminController::class, 'index'])->middleware('auth');
