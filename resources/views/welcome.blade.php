@@ -12,7 +12,7 @@
         <h1>Absensi Guru</h1>
         <nav>
             <a href="/">Home</a>
-            <a href="/absen">Absensi</a>
+            <a href="/absensi">Absensi</a>
             <a href="/nilai">Nilai</a>
             <a href="/data">Data</a>
             <a href="/dashboard">Dashboard</a>
