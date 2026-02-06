@@ -13,15 +13,15 @@ Route::get('/', function () {
 });
 
 Route::get('/absen', function () {
-    return view('Guru.absen');
+    return view('absensi.absen');
 });
 
 Route::get('/nilai', function () {
-    return view('Guru.nilai');
+    return view('nilai.nilai');
 });
 
 Route::get('/siswa', function () {
-    return view('Siswa.data');
+    return view('siswa.data');
 });
 
 Route::get('/dashboard', [AdminController::class, 'index'])->middleware('auth');
