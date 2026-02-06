@@ -12,7 +12,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/absen', function () {
+Route::get('/absensi', function () {
     return view('absensi.absen');
 });
 
@@ -20,7 +20,7 @@ Route::get('/nilai', function () {
     return view('nilai.nilai');
 });
 
-Route::get('/siswa', function () {
+Route::get('/data', function () {
     return view('siswa.data');
 });
 
