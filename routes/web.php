@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\StudentController;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -25,3 +26,5 @@ Route::get('/data', function () {
 });
 
 Route::get('/dashboard', [AdminController::class, 'index'])->middleware('auth');
+
+Route::get('students', [StudentController::class, 'index']) ->name('students.index');

@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('nis', 10)->unique;
             $table->text('alamat');
             $table->string('no_telp', 20);
-            $table->string('no_telp_ortu');
             $table->foreignId('classroom_id')->constrained('classrooms')->restrictOnDelete();
             $table->timestamps();
         });

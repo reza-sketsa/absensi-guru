@@ -12,7 +12,8 @@ class StudentController extends Controller
      */
     public function index()
     {
-        //
+        $students = student::all();
+        dd($students);
     }
 
     /**
