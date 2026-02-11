@@ -22,7 +22,7 @@ Route::get('/nilai', function () {
 });
 
 Route::get('/data', function () {
-    return view('siswa.data');
+    return view('siswa.index');
 });
 
 Route::get('/dashboard', [AdminController::class, 'index'])->middleware('auth');
