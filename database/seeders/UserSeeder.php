@@ -16,9 +16,9 @@ class UserSeeder extends Seeder
     {
         \App\Models\User::create([
             'id' => 1,
-            'username' => 'Puspa',
+            'username' => 'Admin',
             'password' => bcrypt('123'),
-            'role' => 'Guru',
+            'role' => 'Admin',
             'remember_token' => Str::random(10),
         ]);
     }

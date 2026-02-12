@@ -9,10 +9,18 @@
 
           <nav class="navbar navbar-expand fixed-bottom bg-light">
               <ul class="navbar-nav mx-auto">
-                  <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                  <li class="nav-item"><a class="nav-link" href="/absensi">Absensi</a></li>
-                  <li class="nav-item"><a class="nav-link" href="/data">Data</a></li>
-                  <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+                  <li class="nav-item">
+                      <a class="nav-link" href="/"><i class="bi bi-house-door"></i></a>
+                  </li>
+                  <li class="nav-item">
+                      <a class="nav-link" href="/absensi"><i class="bi bi-calendar-check"></i></a>
+                  </li>
+                  <li class="nav-item">
+                      <a class="nav-link" href="/data"><i class="bi bi-person"></i></a>
+                  </li>
+                  <li class="nav-item">
+                      <a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2"></i></a>
+                  </li>
               </ul>
           </nav>
 
