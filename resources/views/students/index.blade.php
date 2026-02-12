@@ -1,6 +1,6 @@
 @extends('welcome')
 
-@section('title', 'Data Siswa')
+@section('title', 'Student Data')
 
 @section('content')
     <h2>Data Siswa</h2>

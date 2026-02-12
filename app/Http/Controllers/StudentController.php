@@ -12,8 +12,8 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $students = student::all();
-        return view ('students.index', compact('students'));
+        $students = Student::all();
+        return view('students.index', compact('students'));
     }
 
     /**
@@ -64,3 +64,4 @@ class StudentController extends Controller
         //
     }
 }
+   

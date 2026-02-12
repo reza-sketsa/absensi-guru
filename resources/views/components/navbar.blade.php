@@ -7,8 +7,8 @@
               <h1 class="h4 mb-0">Absensi Guru</h1>
           </div>
 
-          <nav class="navbar navbar-expand">
-              <ul class="navbar-nav">
+          <nav class="navbar navbar-expand fixed-bottom bg-light">
+              <ul class="navbar-nav mx-auto">
                   <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
                   <li class="nav-item"><a class="nav-link" href="/absensi">Absensi</a></li>
                   <li class="nav-item"><a class="nav-link" href="/data">Data</a></li>
