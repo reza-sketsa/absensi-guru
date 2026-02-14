@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->restrictOnDelete();
             $table->string('nama', 100);
-            $table->enum('agama', ['Islam', 'Kristen', 'Hindu', 'Buddha']);
+            $table->enum('agama', ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu']);
             $table->enum('jk', ['L', 'P']);
             $table->date('tgl_lahir');
             $table->string('nis', 10)->unique;

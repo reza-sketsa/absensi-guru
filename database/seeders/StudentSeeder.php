@@ -18,7 +18,7 @@ class StudentSeeder extends Seeder
         for ($i = 0; $i < 10; $i++) {
             Student::create([
                 'nama'          => $faker->name,
-                'agama'         => $faker->randomElement(['Islam', 'Kristen', 'Hindu', 'Buddha']),
+                'agama'         => $faker->randomElement(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu']),
                 'jk'            => $faker->randomElement(['L', 'P']),
                 'tgl_lahir'     => $faker->date('Y-m-d', '2010-01-01'),
                 'nis'           => $faker->unique()->numerify('008#######'),
