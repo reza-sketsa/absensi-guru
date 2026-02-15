@@ -4,64 +4,97 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class StudentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
+
         $students = Student::all();
         return view('students.home', compact('students'));
+
+        $students = Student::orderBy('nama', 'asc')->get();
+        return response()->json([
+            'status' => true,
+            'message' => 'Data ditemukan',
+            'data' => $students
+        ], 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $rules = [
+            'nama' => 'required|string|max:100',
+            'nis' => 'required|unique:students,nis',
+            'jk' => 'required|in:L,P',
+            'classroom_id' => 'required|exists:classrooms,id'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validasi gagal',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $student = Student::create($request->all());
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data berhasil ditambahkan',
+            'data' => $student
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Student $student)
     {
-        //
+        return response()->json([
+            'status' => true,
+            'message' => 'Data ditemukan',
+            'data' => $student
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Student $student)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Student $student)
     {
-        //
+        $rules = [
+            'nama' => 'required|string|max:100',
+            'nis' => 'required|unique:students,nis,' . $student->id,
+            'jk' => 'required|in:L,P',
+            'classroom_id' => 'required|exists:classrooms,id'
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data gagal di update',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $student->update($request->all());
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data berhasil di update',
+            'data' => $student
+        ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Student $student)
     {
-        //
+        $student->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data berhasil di delete',
+        ], 200);
     }
 }
-   

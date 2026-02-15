@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Student;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
@@ -13,17 +14,20 @@ class StudentSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Student::create([
-            'id' => 1,
-            'nama' => 'M.Reza Al Farisi',
-            'agama' => 'Islam',
-            'jk' => 'L',
-            'tgl_lahir' => '2008-12-29',
-            'nis' => '0081234567',
-            'alamat' => 'Jl. Pangeran Kacil',
-            'no_telp' => '082254853872',
-            'no_telp_ortu' => '081256877110',
-            'classroom_id' => 1,
-        ]);
+        $faker = \faker\Factory::create('id_ID');
+        for ($i = 0; $i < 10; $i++) {
+            Student::create([
+                'nama'          => $faker->name,
+                'agama'         => $faker->randomElement(['Islam', 'Kristen', 'Hindu', 'Buddha']),
+                'jk'            => $faker->randomElement(['L', 'P']),
+                'tgl_lahir'     => $faker->date('Y-m-d', '2010-01-01'),
+                'nis'           => $faker->unique()->numerify('008#######'),
+                'alamat'        => $faker->address,
+                'no_telp'       => $faker->phoneNumber,
+                'no_telp_ortu'  => $faker->phoneNumber,
+                'classroom_id'  => 1,
+
+            ]);
+        }
     }
 }
