@@ -6,6 +6,32 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+    'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';
+}
+
+/* ===== custom buat login & layout ===== */
+@layer components {
+  .login-wrap {
+    @apply max-w-[420px] mx-auto mt-[18vh] bg-white p-6 rounded-2xl shadow-lg;
+  }
+  .login-title {
+    @apply text-center text-blue-900 text-xl font-semibold mb-4;
+  }
+  .login-logo {
+    @apply w-[72px] mx-auto mb-2;
+  }
+  .input {
+    @apply w-full rounded-xl px-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-800;
+  }
+  .btn-primary {
+    @apply w-full rounded-xl py-3 bg-blue-900 text-white font-medium;
+  }
+}
+
+/* background global */
+@layer utilities {
+  .bg-app {
+    @apply bg-gray-100 min-h-screen;
+  }
 }

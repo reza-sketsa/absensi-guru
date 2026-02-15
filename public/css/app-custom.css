@@ -1,0 +1,15 @@
+body{
+  background:#f5f7fb;
+}
+.app-card{
+  border-radius:16px;
+}
+.app-title{
+  color:#0d6efd;
+}
+.app-muted{
+  color:#6c757d;
+}
+.nav-bottom{
+  border-top:1px solid #e5e7eb;
+}
