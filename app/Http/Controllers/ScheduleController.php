@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Schedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ScheduleController extends Controller
 {
@@ -12,7 +13,13 @@ class ScheduleController extends Controller
      */
     public function index()
     {
-        //
+        $schedule = Schedule::with(['teacher', 'subject', 'classroom'])->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Jadwal mata pelajaran ditemukan',
+            'data' => $schedule
+        ], 200);
     }
 
     /**
@@ -28,7 +35,30 @@ class ScheduleController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'teacher_id'   => 'required|exists:teachers,id',
+            'subject_id'   => 'required|exists:subjects,id',
+            'classroom_id' => 'required|exists:classrooms,id',
+            'hari'         => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'jam_mulai'    => 'required',
+            'jam_habis'    => 'required|after:jam_mulai',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validator gagal, silahkan cek',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $schedule = Schedule::create($request->all());
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Jadwal berhasil ditambahkan',
+            'data' => $schedule
+        ], 201);
     }
 
     /**
@@ -36,7 +66,11 @@ class ScheduleController extends Controller
      */
     public function show(Schedule $schedule)
     {
-        //
+        return response()->json([
+            'status' => true,
+            'message' => 'Detail jadwal',
+            'data' => $schedule->load(['teacher', 'subject', 'classroom'])
+        ]);
     }
 
     /**
@@ -52,7 +86,29 @@ class ScheduleController extends Controller
      */
     public function update(Request $request, Schedule $schedule)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'teacher_id'   => 'required|exists:teachers,id',
+            'subject_id'   => 'required|exists:subjects,id',
+            'classroom_id' => 'required|exists:classrooms,id',
+            'hari'         => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'jam_mulai'    => 'required',
+            'jam_habis'    => 'required|after:jam_mulai',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Jadwal gagal ditambah',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $schedule->update($request->all());
+        return response()->json([
+            'status' => true,
+            'message' => 'Jadwal berhasil ditambahkan',
+            'data' => $schedule
+        ], 200);
     }
 
     /**
@@ -60,6 +116,11 @@ class ScheduleController extends Controller
      */
     public function destroy(Schedule $schedule)
     {
-        //
+        $schedule->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Jadwal berhasil dihapus secara permanen'
+        ], 200);
     }
 }

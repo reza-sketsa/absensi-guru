@@ -11,7 +11,8 @@ class StudentController extends Controller
 {
     public function index()
     {
-        $students = Student::orderBy('nama', 'asc')->get();
+
+        $students = Student::with('classroom')->orderBy('nama', 'asc')->get();
         return response()->json([
             'status' => true,
             'message' => 'Data ditemukan',
@@ -23,8 +24,13 @@ class StudentController extends Controller
     {
         $rules = [
             'nama' => 'required|string|max:100',
-            'nis' => 'required|unique:students,nis',
+            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
             'jk' => 'required|in:L,P',
+            'tgl_lahir' => 'required|date',
+            'nis' => 'required|unique:students,nis',
+            'alamat' => 'required|string',
+            'no_telp' => 'required|string',
+            'no_telp_ortu' => 'required|string',
             'classroom_id' => 'required|exists:classrooms,id'
         ];
 
@@ -52,7 +58,7 @@ class StudentController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Data ditemukan',
-            'data' => $student
+            'data' => $student->load('classroom')
         ], 200);
     }
 
@@ -60,8 +66,13 @@ class StudentController extends Controller
     {
         $rules = [
             'nama' => 'required|string|max:100',
-            'nis' => 'required|unique:students,nis,' . $student->id,
+            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
             'jk' => 'required|in:L,P',
+            'tgl_lahir' => 'required|date',
+            'nis' => 'required|unique:students,nis,' . $student->id,
+            'alamat' => 'required|string',
+            'no_telp' => 'required|string',
+            'no_telp_ortu' => 'required|string',
             'classroom_id' => 'required|exists:classrooms,id'
         ];
 

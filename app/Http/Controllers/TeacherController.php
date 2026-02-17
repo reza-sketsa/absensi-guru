@@ -13,7 +13,7 @@ class TeacherController extends Controller
      */
     public function index()
     {
-        $teacher = Teacher::orderBy('nama_guru', 'asc')->get();
+        $teacher = Teacher::with(['user', 'school'])->orderBy('nama_guru', 'asc')->get();
 
         return response()->json([
             'status' => true,
@@ -38,8 +38,9 @@ class TeacherController extends Controller
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'nama_guru' => 'required|string|max:100',
-            'agama' => 'required|in:Islam,Kristen,Hindu,Buddha',
+            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
             'nip' => 'required|unique:teachers,nip',
+            'tgl_lahir' => 'required|date',
             'jk' => 'required|in:L,P',
             'alamat' => 'required|string',
             'no_telp' => 'required|string',
@@ -70,7 +71,7 @@ class TeacherController extends Controller
     {
         return response()->json([
             'status' => true,
-            'data' => $teacher
+            'data' => $teacher->load(['user', 'school'])
         ]);
     }
 
@@ -90,8 +91,9 @@ class TeacherController extends Controller
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'nama_guru' => 'required|string|max:100',
-            'agama' => 'required|in:Islam,Kristen,Hindu,Buddha',
+            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
             'nip' => 'required|unique:teachers,nip,' . $teacher->id,
+            'tgl_lahir' => 'required|date',
             'jk' => 'required|in:L,P',
             'alamat' => 'required|string',
             'no_telp' => 'required|string',

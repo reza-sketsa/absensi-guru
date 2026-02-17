@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('attendance_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attendance_id')->constrained('attendances')->restrictOnDelete();
-            $table->foreignId('schedule_id')->constrained('schedules')->restrictOnDelete();
+            $table->foreignId('student_id')->constrained('students')->restrictOnDelete();
             $table->enum('status', ['Sakit', 'Izin', 'Alpa', 'Hadir'])->default('Hadir');
             $table->timestamps();
         });

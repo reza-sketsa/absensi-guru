@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Teacher;
 use Illuminate\Database\Seeder;
 
 class TeachersSeeder extends Seeder
@@ -12,16 +12,38 @@ class TeachersSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Teacher::create([
-            'id' => 1,
-            'user_id' => 1,
-            'nama_guru' => 'Puspa',
-            'agama' => 'Islam',
-            'nip' => '008987654',
-            'jk' => 'P',
-            'alamat' => 'muka SMA GARUDA',
-            'no_telp' => '081256877110',
-            'school_id' => 1,
+        $faker = \Faker\Factory::create('id_ID');
+
+        \App\Models\User::create([
+            'username' => 'Admin',
+            'password' => bcrypt('123'),
+            'role'     => 'Admin',
+            'remember_token' => \Illuminate\Support\Str::random(10),
         ]);
+
+        // 2. Data Guru (5 orang)
+        for ($i = 0; $i < 5; $i++) {
+            $nama = $faker->name;
+            $firstName = explode(' ', $nama)[0];
+
+            // Buat akun User untuk login guru
+            $user = \App\Models\User::create([
+                'username' => strtolower($firstName) . $faker->numerify('###'),
+                'password' => bcrypt('123'),
+                'role'     => 'Guru',
+            ]);
+
+            \App\Models\Teacher::create([
+                'user_id'   => $user->id,
+                'school_id' => 1,
+                'nama_guru' => $nama,
+                'nip'       => $faker->unique()->numerify('##################'),
+                'tgl_lahir' => $faker->date(),
+                'agama'     => $faker->randomElement(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu']),
+                'jk'        => $faker->randomElement(['L', 'P']),
+                'alamat'    => $faker->address,
+                'no_telp'   => $faker->phoneNumber,
+            ]);
+        }
     }
 }

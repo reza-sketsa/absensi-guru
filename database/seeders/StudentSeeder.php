@@ -15,7 +15,7 @@ class StudentSeeder extends Seeder
     public function run(): void
     {
         $faker = \faker\Factory::create('id_ID');
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             Student::create([
                 'nama'          => $faker->name,
                 'agama'         => $faker->randomElement(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu']),

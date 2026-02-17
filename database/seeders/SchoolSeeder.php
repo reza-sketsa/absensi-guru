@@ -13,7 +13,6 @@ class SchoolSeeder extends Seeder
     public function run(): void
     {
         \App\Models\School::create([
-            'id' => 1,
             'nama_sekolah' => 'SMPN 1 KOTABARU',
             'alamat' => 'Jl. M. Alwi No.158, Kec. Pulau Laut Utara, Kab. Kotabaru, Prov. Kalimantan Selatan',
             'no_telp' => '028228976',
