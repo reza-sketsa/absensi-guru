@@ -4,15 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
 class StudentController extends Controller
 {
+    // FRONTEND
     public function index()
     {
+        $students = Student::with('classroom')->orderBy('nama','asc')->get();
+        return view('admin.dashboard', compact('students'));
+    }
 
-        $students = Student::with('classroom')->orderBy('nama', 'asc')->get();
+    // API
+    public function apiIndex()
+    {
+        $students = Student::with('classroom')->orderBy('nama','asc')->get();
         return response()->json([
             'status' => true,
             'message' => 'Data ditemukan',
@@ -35,11 +41,9 @@ class StudentController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Validasi gagal',
                 'data' => $validator->errors()
             ], 422);
         }
@@ -48,7 +52,6 @@ class StudentController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Data berhasil ditambahkan',
             'data' => $student
         ], 201);
     }
@@ -57,7 +60,6 @@ class StudentController extends Controller
     {
         return response()->json([
             'status' => true,
-            'message' => 'Data ditemukan',
             'data' => $student->load('classroom')
         ], 200);
     }
@@ -77,11 +79,9 @@ class StudentController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Data gagal di update',
                 'data' => $validator->errors()
             ], 422);
         }
@@ -90,7 +90,6 @@ class StudentController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Data berhasil di update',
             'data' => $student
         ], 200);
     }
@@ -98,10 +97,6 @@ class StudentController extends Controller
     public function destroy(Student $student)
     {
         $student->delete();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Data berhasil di delete',
-        ], 200);
+        return response()->json(['status' => true], 200);
     }
 }
