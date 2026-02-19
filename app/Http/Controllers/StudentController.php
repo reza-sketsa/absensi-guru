@@ -3,31 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
+use App\Models\Subject;
+use App\Models\Teacher;
+use App\Models\Evaluation;
+use App\Models\EvaluationDetail;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
-    public function indexBlade()
-    {
-
-        $id_guru_login = 1;
-
-        $students = \App\Models\Student::whereHas('classroom', function ($query) use ($id_guru_login) {
-            $query->where('walas_id', $id_guru_login);
-        })
-            ->with('classroom', 'evaluations.evaluation')
-            ->orderBy('nama', 'asc')
-            ->get();
-
-        return view('nilai.nilai', compact('students'));
-    }
-
-
     public function index()
     {
+        $students = Student::with('classroom')->orderBy('nama', 'asc')->get();
+        return view('admin.dashboard', compact('students'));
+    }
 
+    // API
+    public function apiIndex()
+    {
         $students = Student::with('classroom')->orderBy('nama', 'asc')->get();
         return response()->json([
             'status' => true,
@@ -51,11 +45,9 @@ class StudentController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Validasi gagal',
                 'data' => $validator->errors()
             ], 422);
         }
@@ -64,7 +56,6 @@ class StudentController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Data berhasil ditambahkan',
             'data' => $student
         ], 201);
     }
@@ -73,7 +64,6 @@ class StudentController extends Controller
     {
         return response()->json([
             'status' => true,
-            'message' => 'Data ditemukan',
             'data' => $student->load('classroom')
         ], 200);
     }
@@ -93,11 +83,9 @@ class StudentController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Data gagal di update',
                 'data' => $validator->errors()
             ], 422);
         }
@@ -106,7 +94,6 @@ class StudentController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Data berhasil di update',
             'data' => $student
         ], 200);
     }
@@ -114,52 +101,60 @@ class StudentController extends Controller
     public function destroy(Student $student)
     {
         $student->delete();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Data berhasil di delete',
-        ], 200);
+        return response()->json(['status' => true], 200);
     }
+
+
 
     public function input(Student $student)
     {
-        $student->load(['classroom', 'evaluations']);
+        $student->load(['classroom', 'evaluations.evaluation']);
 
-        $subjects = \App\Models\Subject::all();
-        $teachers = \App\Models\Teacher::all();
-        $evaluations = \App\Models\Evaluation::all();
+        $subjects = Subject::all();
+        $teachers = Teacher::all();
+        $evaluations = Evaluation::all();
 
         return view('nilai.input', compact('student', 'evaluations', 'subjects', 'teachers'));
     }
+
     public function storeNilai(Request $request)
     {
-        // Coba debug di sini, kalau pas klik simpan muncul data lu, berarti form OK
-        // dd($request->all());
-
-        // 1. Simpan Master Penilaian
-        $evaluation = \App\Models\Evaluation::create([
-            'subject_id'     => $request->subject_id,
-            'teacher_id'     => $request->teacher_id,
-            'schedule_id'    => 1, // Pastiin ini ada isinya biar gak error SQL lagi
-            'jenis'          => $request->jenis,
-            'nama_penilaian' => $request->nama_penilaian,
-            'tanggal'        => now(),
+        $request->validate([
+            'student_id'     => 'required|exists:students,id',
+            'subject_id'     => 'required|exists:subjects,id',
+            'teacher_id'     => 'required|exists:teachers,id',
+            'jenis'          => 'required|string',
+            'nama_penilaian' => 'required|string|max:255',
+            'nilai'          => 'required|numeric|min:0|max:100',
         ]);
 
-        // 2. Simpan Angka Nilainya
-        if ($evaluation) {
-            $detail = \App\Models\EvaluationDetail::create([
+        DB::beginTransaction();
+
+        try {
+
+            $evaluation = Evaluation::create([
+                'subject_id'     => $request->subject_id,
+                'teacher_id'     => $request->teacher_id,
+                'schedule_id'    => 1, // Pastikan ID ini memang ada di tabel schedules
+                'jenis'          => $request->jenis,
+                'nama_penilaian' => $request->nama_penilaian,
+                'tanggal'        => now(),
+            ]);
+
+            EvaluationDetail::create([
                 'student_id'    => $request->student_id,
                 'evaluation_id' => $evaluation->id,
                 'nilai'         => $request->nilai,
             ]);
 
-            // Cek apakah detail berhasil kesimpen
-            if (!$detail) {
-                return "Waduh, Master masuk tapi Detail Nilai gagal kesimpen, Bang!";
-            }
-        }
+            DB::commit();
 
-        return redirect('/data')->with('success', 'Berhasil Simpan Nilai!');
+            return redirect('/data')->with('success', 'Berhasil Simpan Nilai!');
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return back()->with('error', 'Gagal simpan nilai: ' . $e->getMessage());
+        }
     }
 }

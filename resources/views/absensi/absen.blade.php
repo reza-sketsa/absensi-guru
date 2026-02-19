@@ -1,28 +1,50 @@
-@extends('welcome')
+@foreach($siswa as $s)
 
-@section('title','Absen')
-
-@section('content')
-<div class="mb-3">
-  <h4 class="fw-bold">Absensi Siswa</h4>
-  <p class="text-muted mb-0">Absen hari ini</p>
-</div>
-
-<div class="card app-card shadow-sm">
+<div class="card app-card shadow-sm mb-3">
   <div class="card-body">
-    <h5 class="fw-bold mb-3">Pilih Kehadiran</h5>
 
-    <button class="btn btn-success w-100 mb-2">
-      Hadir
-    </button>
+    <h6 class="fw-bold mb-3">
+      {{ $s->nama }}
+    </h6>
 
-    <button class="btn btn-warning w-100 mb-2 text-white">
-      Izin
-    </button>
+    <div class="btn-group w-100" role="group">
 
-    <button class="btn btn-danger w-100">
-      Sakit
-    </button>
+      <input type="radio"
+        class="btn-check"
+        name="absen[{{ $s->id }}]"
+        id="hadir{{ $s->id }}"
+        value="hadir"
+        checked>
+
+      <label class="btn btn-outline-success" for="hadir{{ $s->id }}">
+        Hadir
+      </label>
+
+
+      <input type="radio"
+        class="btn-check"
+        name="absen[{{ $s->id }}]"
+        id="izin{{ $s->id }}"
+        value="izin">
+
+      <label class="btn btn-outline-warning" for="izin{{ $s->id }}">
+        Izin
+      </label>
+
+
+      <input type="radio"
+        class="btn-check"
+        name="absen[{{ $s->id }}]"
+        id="sakit{{ $s->id }}"
+        value="sakit">
+
+      <label class="btn btn-outline-danger" for="sakit{{ $s->id }}">
+        Sakit
+      </label>
+
+    </div>
+
   </div>
 </div>
-@endsection
+
+@endforeach

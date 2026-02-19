@@ -2,28 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Student;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Data sementara (biar tidak error)
+        // Data dashboard
         $totalGuru  = 0;
         $hadir      = 0;
         $terlambat  = 0;
         $alpha      = 0;
 
-        // Data tabel kosong dulu
         $absensi = collect([]);
 
-        return view('Admin.dashboard', compact(
+        // Data siswa buat home
+        $students = Student::orderBy('nama','asc')->get();
+
+        return view('home', compact(
             'totalGuru',
             'hadir',
             'terlambat',
             'alpha',
-            'absensi'
+            'absensi',
+            'students'
         ));
     }
 }

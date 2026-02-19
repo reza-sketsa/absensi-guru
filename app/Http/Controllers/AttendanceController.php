@@ -9,11 +9,30 @@ use Illuminate\Support\Facades\Validator;
 
 class AttendanceController extends Controller
 {
+
+    // ===============================
+    // VIEW ABSENSI (BUAT HALAMAN)
+    // ===============================
     public function index()
     {
-        $attendance = Attendance::with(['schedule.teacher', 'schedule.subject', 'details.student'])
-            ->latest()
-            ->get();
+        $siswa = DB::table('students')->get();
+
+        return view('absensi.absen', compact('siswa'));
+    }
+
+
+    // ===============================
+    // API RIWAYAT (JSON)
+    // ===============================
+    public function apiIndex()
+    {
+        $attendance = Attendance::with([
+            'schedule.teacher',
+            'schedule.subject',
+            'details.student'
+        ])
+        ->latest()
+        ->get();
 
         return response()->json([
             'status' => true,
@@ -22,8 +41,33 @@ class AttendanceController extends Controller
         ], 200);
     }
 
+
+    // ===============================
+    // SIMPAN ABSENSI
+    // ===============================
     public function store(Request $request)
     {
+
+        // KALO DARI FORM WEB
+        if($request->has('absen')){
+
+            foreach($request->absen as $id => $status){
+
+                DB::table('attendance_details')->insert([
+                    'student_id' => $id,
+                    'status'     => ucfirst($status),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+            }
+
+            return redirect('/absensi')
+                   ->with('success','Absensi tersimpan');
+        }
+
+
+        // KALO DARI API
         $validator = Validator::make($request->all(), [
             'schedule_id' => 'required|exists:schedules,id',
             'tanggal' => 'required|date',
@@ -40,18 +84,21 @@ class AttendanceController extends Controller
         }
 
         return DB::transaction(function () use ($request) {
-            // Buat Master
+
+            // Master
             $attendance = Attendance::create([
                 'schedule_id' => $request->schedule_id,
                 'tanggal' => $request->tanggal,
             ]);
 
-            // Buat Detail
+            // Detail
             foreach ($request->absensi as $item) {
+
                 $attendance->details()->create([
                     'student_id' => $item['student_id'],
                     'status'     => $item['status']
                 ]);
+
             }
 
             return response()->json([
@@ -62,16 +109,29 @@ class AttendanceController extends Controller
         });
     }
 
+
+    // ===============================
+    // DETAIL
+    // ===============================
     public function show(Attendance $attendance)
     {
         return response()->json([
             'status' => true,
-            'data' => $attendance->load(['schedule.teacher', 'schedule.subject', 'details.student'])
+            'data' => $attendance->load([
+                'schedule.teacher',
+                'schedule.subject',
+                'details.student'
+            ])
         ]);
     }
 
+
+    // ===============================
+    // UPDATE
+    // ===============================
     public function update(Request $request, Attendance $attendance)
     {
+
         $validator = Validator::make($request->all(), [
             'schedule_id' => 'required|exists:schedules,id',
             'tanggal' => 'required|date',
@@ -81,23 +141,30 @@ class AttendanceController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['status' => false, 'data' => $validator->errors()], 422);
+            return response()->json([
+                'status' => false,
+                'data' => $validator->errors()
+            ], 422);
         }
 
         return DB::transaction(function () use ($request, $attendance) {
-            // Update Master
+
+            // Update master
             $attendance->update([
                 'schedule_id' => $request->schedule_id,
                 'tanggal' => $request->tanggal,
             ]);
 
-            // Refresh Detail: Hapus lama, buat baru
+            // Refresh detail
             $attendance->details()->delete();
+
             foreach ($request->absensi as $item) {
+
                 $attendance->details()->create([
                     'student_id' => $item['student_id'],
                     'status'     => $item['status']
                 ]);
+
             }
 
             return response()->json([
@@ -108,6 +175,10 @@ class AttendanceController extends Controller
         });
     }
 
+
+    // ===============================
+    // DELETE
+    // ===============================
     public function destroy(Attendance $attendance)
     {
         $attendance->delete();
@@ -117,4 +188,5 @@ class AttendanceController extends Controller
             'message' => 'Data absensi berhasil dihapus'
         ], 200);
     }
+
 }
