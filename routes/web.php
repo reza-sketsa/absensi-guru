@@ -22,7 +22,11 @@ Route::get('/absensi', fn() => view('absensi.absen'));
 
 // DATA / NILAI
 Route::get('/nilai', fn() => view('nilai'));
-Route::get('/data', [StudentController::class, 'index']); // tetep pake controller kalo mau dinamis
+Route::get('/data', [App\Http\Controllers\StudentController::class, 'indexBlade']);
+
+Route::get('/nilai/input/{student}', [StudentController::class, 'input'])->name('nilai.input');
+Route::post('/nilai/store', [App\Http\Controllers\StudentController::class, 'storeNilai'])->name('nilai.store');
+
 
 // STUDENTS (opsional)
 Route::get('/students', [StudentController::class, 'index'])->name('students.index');

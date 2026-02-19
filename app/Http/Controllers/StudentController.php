@@ -9,6 +9,22 @@ use Illuminate\Support\Facades\Validator;
 
 class StudentController extends Controller
 {
+    public function indexBlade()
+    {
+
+        $id_guru_login = 1;
+
+        $students = \App\Models\Student::whereHas('classroom', function ($query) use ($id_guru_login) {
+            $query->where('walas_id', $id_guru_login);
+        })
+            ->with('classroom', 'evaluations.evaluation')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        return view('nilai.nilai', compact('students'));
+    }
+
+
     public function index()
     {
 
@@ -103,5 +119,47 @@ class StudentController extends Controller
             'status' => true,
             'message' => 'Data berhasil di delete',
         ], 200);
+    }
+
+    public function input(Student $student)
+    {
+        $student->load(['classroom', 'evaluations']);
+
+        $subjects = \App\Models\Subject::all();
+        $teachers = \App\Models\Teacher::all();
+        $evaluations = \App\Models\Evaluation::all();
+
+        return view('nilai.input', compact('student', 'evaluations', 'subjects', 'teachers'));
+    }
+    public function storeNilai(Request $request)
+    {
+        // Coba debug di sini, kalau pas klik simpan muncul data lu, berarti form OK
+        // dd($request->all());
+
+        // 1. Simpan Master Penilaian
+        $evaluation = \App\Models\Evaluation::create([
+            'subject_id'     => $request->subject_id,
+            'teacher_id'     => $request->teacher_id,
+            'schedule_id'    => 1, // Pastiin ini ada isinya biar gak error SQL lagi
+            'jenis'          => $request->jenis,
+            'nama_penilaian' => $request->nama_penilaian,
+            'tanggal'        => now(),
+        ]);
+
+        // 2. Simpan Angka Nilainya
+        if ($evaluation) {
+            $detail = \App\Models\EvaluationDetail::create([
+                'student_id'    => $request->student_id,
+                'evaluation_id' => $evaluation->id,
+                'nilai'         => $request->nilai,
+            ]);
+
+            // Cek apakah detail berhasil kesimpen
+            if (!$detail) {
+                return "Waduh, Master masuk tapi Detail Nilai gagal kesimpen, Bang!";
+            }
+        }
+
+        return redirect('/data')->with('success', 'Berhasil Simpan Nilai!');
     }
 }

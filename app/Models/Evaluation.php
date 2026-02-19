@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\EvaluationDetail;
 use Illuminate\Database\Eloquent\Model;
 
 class Evaluation extends Model
@@ -17,6 +18,6 @@ class Evaluation extends Model
 
     public function details()
     {
-        return $this->hasMany(Evaluation_detail::class, 'evaluation_id');
+        return $this->hasMany(EvaluationDetail::class, 'evaluation_id');
     }
 }

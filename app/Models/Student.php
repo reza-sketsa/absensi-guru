@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\EvaluationDetail;
 use Illuminate\Database\Eloquent\Model;
 
 class Student extends Model
 {
     protected $table = "students";
+
     protected $fillable = [
         'nama',
         'agama',
@@ -21,5 +23,12 @@ class Student extends Model
     public function classroom()
     {
         return $this->belongsTo(Classroom::class);
+    }
+
+    // Tambahkan ini di dalam class Student
+    public function evaluations()
+    {
+        // Sesuaikan dengan nama model nilai lu, misal Evaluation atau Grade
+        return $this->hasMany(EvaluationDetail::class);
     }
 }
