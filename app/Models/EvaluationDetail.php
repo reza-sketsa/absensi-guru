@@ -8,7 +8,12 @@ class EvaluationDetail extends Model
 {
     protected $table = 'evaluation_details'; // Sesuaikan sama nama tabel di DB
 
-    protected $fillable = ['evaluation_id', 'student_id', 'nilai'];
+    protected $fillable = [
+
+        'evaluation_id',
+        'student_id',
+        'nilai'
+    ];
 
     // INI YANG WAJIB ADA BIAR GAK ERROR LAGI:
     public function evaluation()

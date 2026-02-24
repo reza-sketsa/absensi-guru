@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('subject_id')->constrained('subjects')->restrictOnDelete();
             $table->foreignId('teacher_id')->constrained('teachers')->restrictOnDelete();
             $table->enum('jenis', ['Tugas', 'UTS', 'UAS']);
-            $table->string('nama_penilaian', 30);
+            $table->string('nama_penilaian', 50);
             $table->date('tanggal');
             $table->timestamps();
         });

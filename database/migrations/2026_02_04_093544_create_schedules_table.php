@@ -13,13 +13,16 @@ return new class extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('academic_year_id')->constrained()->restrictOnDelete();
             $table->foreignId('teacher_id')->constrained('teachers')->restrictOnDelete();
             $table->foreignId('subject_id')->constrained('subjects')->restrictOnDelete();
             $table->foreignId('classroom_id')->constrained('classrooms')->restrictOnDelete();
             $table->enum('hari', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']);
             $table->time('jam_mulai');
             $table->time('jam_habis');
+            $table->index(['teacher_id', 'hari']);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

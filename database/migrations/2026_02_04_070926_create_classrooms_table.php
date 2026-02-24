@@ -16,7 +16,9 @@ return new class extends Migration
             $table->enum('tingkat', ['VII', 'VIII', 'IX']);
             $table->enum('paralel', ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']);
             $table->foreignId('walas_id')->constrained('teachers')->restrictOnDelete();
+            $table->unique(['tingkat', 'paralel']);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

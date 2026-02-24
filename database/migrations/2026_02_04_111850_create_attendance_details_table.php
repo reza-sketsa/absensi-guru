@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('attendance_id')->constrained('attendances')->restrictOnDelete();
             $table->foreignId('student_id')->constrained('students')->restrictOnDelete();
             $table->enum('status', ['Sakit', 'Izin', 'Alpa', 'Hadir'])->default('Hadir');
+            $table->string('keterangan')->nullable();
             $table->timestamps();
         });
     }

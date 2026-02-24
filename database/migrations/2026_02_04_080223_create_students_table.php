@@ -14,15 +14,16 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->restrictOnDelete();
-            $table->string('nama', 100);
+            $table->string('nama', 100)->index();
             $table->enum('agama', ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu']);
             $table->enum('jk', ['L', 'P']);
             $table->date('tgl_lahir');
-            $table->string('nis', 10)->unique;
+            $table->string('nis', 10)->unique();
             $table->text('alamat');
             $table->string('no_telp', 20);
             $table->foreignId('classroom_id')->constrained('classrooms')->restrictOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

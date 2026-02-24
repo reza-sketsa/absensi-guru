@@ -11,10 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subjects', function (Blueprint $table) {
+        Schema::create('academic_years', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_mapel', 30);
+            $table->string('tahun', 10);
+            $table->enum('semester', ['Ganjil', 'Genap']);
+            $table->boolean('is_active')->default(false)->index();
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->unique(['tahun', 'semester']);
         });
     }
 
@@ -23,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('mapels');
+        Schema::dropIfExists('academic_years');
     }
 };

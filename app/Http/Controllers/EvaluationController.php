@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicYear;
 use App\Models\Evaluation;
+use App\Models\Subject;
+use App\Models\Student;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class EvaluationController extends Controller
 {
@@ -14,8 +19,7 @@ class EvaluationController extends Controller
      */
     public function index(Request $request)
     {
-
-        $query = Evaluation::with(['details.student']);
+        $query = Evaluation::with(['details.student', 'subject']);
 
         if ($request->has('subject_id')) {
             $query->where('subject_id', $request->subject_id);
@@ -23,16 +27,21 @@ class EvaluationController extends Controller
 
         return response()->json([
             'status' => true,
-            'data' => $query->latest()->get()
+            'data' => $query->latest()->paginate(10)
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Student $student)
     {
-        //
+        $student->load('classroom');
+
+        $subjects = Subject::all();
+        $teachers = Teacher::all();
+
+        return view('nilai.input', compact(['student', 'subjects', 'teachers']));
     }
 
     /**
@@ -43,44 +52,67 @@ class EvaluationController extends Controller
         $validator = Validator::make($request->all(), [
             'schedule_id' => 'required|exists:schedules,id',
             'subject_id' => 'required|exists:subjects,id',
-            'teacher_id' => 'required|exists:teachers,id',
             'jenis' => 'required|in:Tugas,UTS,UAS',
             'nama_penilaian' => 'required|string|max:30',
             'tanggal' => 'required|date',
             'penilaian' => 'required|array',
             'penilaian.*.student_id' => 'required|exists:students,id',
-            'penilaian.*.nilai' => 'required|numeric'
+            'penilaian.*.nilai' => 'required|numeric|min:0|max:100'
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'data' => $validator->errors()
+                'errors' => $validator->errors()
             ], 422);
         }
 
-        return DB::transaction(function () use ($request) {
-            $evaluation = Evaluation::create([
-                'schedule_id' => $request->schedule_id,
-                'subject_id' => $request->subject_id,
-                'teacher_id' => $request->teacher_id,
-                'jenis' => $request->jenis,
-                'nama_penilaian' => $request->nama_penilaian,
-                'tanggal' => $request->tanggal
-            ]);
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        if (!$activeYear) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tidak ada tahun ajaran aktif!'
+            ], 400);
+        }
+
+        return DB::transaction(function () use ($request, $activeYear) {
+
+            $evaluation = Evaluation::where('subject_id', $request->subject_id)
+                ->where('teacher_id', Auth::id())
+                ->where('jenis', $request->jenis)
+                ->where('nama_penilaian', $request->nama_penilaian)
+                ->where('academic_year_id', $activeYear->id)
+                ->first();
+
+            if (!$evaluation) {
+                $evaluation = Evaluation::create([
+                    'subject_id'     => $request->subject_id,
+                    'teacher_id'     => Auth::id(),
+                    'jenis'          => $request->jenis,
+                    'nama_penilaian' => $request->nama_penilaian,
+                    'academic_year_id' => $activeYear->id,
+                    'schedule_id'    => $request->schedule_id,
+                    'tanggal'        => $request->tanggal,
+                ]);
+            }
 
             foreach ($request->penilaian as $item) {
-                $evaluation->details()->create([
-                    'student_id' => $item['student_id'],
-                    'nilai' => $item['nilai'],
-                ]);
-
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Nilai berhasil diinput',
-                    'data' => $evaluation->load('details.student')
-                ], 200);
+                DB::table('evaluation_details')->updateOrInsert(
+                    [
+                        'evaluation_id' => $evaluation->id,
+                        'student_id'    => $item['student_id'],
+                    ],
+                    [
+                        'nilai'         => $item['nilai'],
+                        'updated_at'    => now(),
+                        'created_at'    => now(),
+                    ]
+                );
             }
+
+            return redirect()->route('students.data')
+                ->with('success', 'Nilai berhasil diproses!');
         });
     }
 
@@ -106,46 +138,48 @@ class EvaluationController extends Controller
      */
     public function update(Request $request, Evaluation $evaluation)
     {
-        $validator  = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'nama_penilaian' => 'required|string|max:30',
             'jenis' => 'required|in:Tugas,UTS,UAS',
             'tanggal' => 'required|date',
             'penilaian' => 'required|array',
             'penilaian.*.student_id' => 'required|exists:students,id',
-            'penilaian.*.nilai' => 'required|numeric',
+            'penilaian.*.nilai' => 'required|numeric|min:0|max:100',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'data' => $validator->errors()
+                'errors' => $validator->errors()
             ], 422);
         }
 
         return DB::transaction(function () use ($request, $evaluation) {
+            $evaluation->update($request->only(['nama_penilaian', 'jenis', 'tanggal']));
 
-            $evaluation->update([
-                'nama_penilaian' => $request->nama_penilaian,
-                'jenis' => $request->jenis,
-                'tanggal' => $request->tanggal,
-            ]);
-
+            // OPTIMASI: Update nilai lebih aman dengan delete & insert atau upsert
             $evaluation->details()->delete();
 
-            foreach ($request->penilaian as $item) {
-                $evaluation->details()->create([
+            $details = collect($request->penilaian)->map(function ($item) use ($evaluation) {
+                return [
+                    'evaluation_id' => $evaluation->id,
                     'student_id' => $item['student_id'],
                     'nilai' => $item['nilai'],
-                ]);
-            }
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            })->toArray();
+
+            $evaluation->details()->insert($details);
 
             return response()->json([
                 'status' => true,
-                'message' => 'Nilai berhasil di update',
-                'true' => $evaluation->load('details.student')
+                'message' => 'Nilai berhasil diupdate',
+                'data' => $evaluation->load('details.student')
             ], 200);
         });
     }
+
 
     /**
      * Remove the specified resource from storage.

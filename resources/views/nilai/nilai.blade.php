@@ -14,6 +14,12 @@
             </div>
         </div>
 
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
         <div class="card shadow-sm border-0">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -58,7 +64,7 @@
                                                 data-bs-target="#modalDetail{{ $student->id }}">
                                                 <i class="bi bi-person-lines-fill"></i>
                                             </button>
-                                            <a href="{{ route('nilai.input', $student->id) }}"
+                                            <a href="{{ route('evaluation.create', $student->id) }}"
                                                 class="btn btn-sm btn-outline-success" title="Input Nilai">
                                                 <i class="bi bi-journal-check"></i>
                                             </a>

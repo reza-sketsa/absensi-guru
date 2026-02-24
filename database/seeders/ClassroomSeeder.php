@@ -10,13 +10,5 @@ class ClassroomSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run(): void
-    {
-        \App\Models\Classroom::create([
-            'id' => 1,
-            'tingkat' => 'IX',
-            'paralel' => 'C',
-            'walas_id' => 1,
-        ]);
-    }
+    public function run(): void {}
 }

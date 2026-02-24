@@ -1,40 +1,53 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\AttendanceController;
 
-
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
-
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/', fn() => view('welcome'));
 
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/dashboard', [AdminController::class, 'index'])->middleware('auth');
+/*
+|--------------------------------------------------------------------------
+| Protected Routes
+|--------------------------------------------------------------------------
+*/
 
+Route::middleware('auth')->group(function () {
 
-Route::get('/absen', fn() => view('absen'));
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-Route::get('/absensi', [AttendanceController::class, 'index']);
-Route::post('/absensi/store', [AttendanceController::class, 'store']);
-Route::get('/absensi-api', [AttendanceController::class, 'apiIndex']);
+    Route::get('/dashboard', [AdminController::class, 'index']);
 
+    // absensi
+    Route::get('/absen', fn() => view('absen'));
+    Route::get('/absensi', [AttendanceController::class, 'index']);
+    Route::post('/absensi/store', [AttendanceController::class, 'store']);
+    Route::get('/absensi-api', [AttendanceController::class, 'apiIndex']);
 
-// halaman data siswa
-Route::get('/data', [StudentController::class, 'indexBlade'])->name('students.data');
+    // halaman data siswa (blade)
+    Route::get('/data', [StudentController::class, 'indexBlade'])
+        ->name('students.data');
 
-// input nilai
-Route::get('/nilai/input/{student}', [StudentController::class, 'input'])
-    ->name('nilai.input');
+    // input nilai
+    Route::get('/nilai/input/{student}', [EvaluationController::class, 'create'])
+        ->name('evaluation.create');
 
-Route::post('/nilai/store', [StudentController::class, 'storeNilai'])
-    ->name('nilai.store');
+    Route::post('/nilai/store', [EvaluationController::class, 'store'])
+        ->name('evaluation.store');
 
-// optional API / admin list
-Route::get('/students', [StudentController::class, 'index'])
-    ->name('students.index');
+    // optional API student list
+    Route::get('/students', [StudentController::class, 'index'])
+        ->name('students.index');
+});

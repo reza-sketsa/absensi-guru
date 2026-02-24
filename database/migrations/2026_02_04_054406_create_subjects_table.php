@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('evaluation_details', function (Blueprint $table) {
+        Schema::create('subjects', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('evaluation_id')->constrained('evaluations')->restrictOnDelete();
-            $table->foreignId('student_id')->constrained('students')->restrictOnDelete();
-            $table->float('nilai');
+            $table->string('nama_mapel', 50)->index();
             $table->timestamps();
-
-            $table->unique(['evaluation_id', 'student_id']);
+            $table->softDeletes();
         });
     }
 
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('evaluation_details');
+        Schema::dropIfExists('subjects');
     }
 };

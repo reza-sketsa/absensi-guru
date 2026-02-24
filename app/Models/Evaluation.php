@@ -11,6 +11,7 @@ class Evaluation extends Model
         'schedule_id',
         'subject_id',
         'teacher_id',
+        'academic_year_id',
         'jenis',
         'nama_penilaian',
         'tanggal'

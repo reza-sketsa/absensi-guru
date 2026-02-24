@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('schedule_id')->constrained('schedules')->restrictOnDelete();
-            $table->date('tanggal');
+            $table->date('tanggal')->index();
             $table->timestamps();
+
+            $table->unique(['schedule_id', 'tanggal']);
         });
     }
 
