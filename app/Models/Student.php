@@ -25,10 +25,9 @@ class Student extends Model
         return $this->belongsTo(Classroom::class);
     }
 
-    // Tambahkan ini di dalam class Student
+
     public function evaluations()
     {
-        // Sesuaikan dengan nama model nilai lu, misal Evaluation atau Grade
         return $this->hasMany(EvaluationDetail::class);
     }
 }

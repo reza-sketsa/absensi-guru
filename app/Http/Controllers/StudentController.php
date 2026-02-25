@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
+use App\Models\EvaluationDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -17,7 +18,9 @@ class StudentController extends Controller
             ->orderBy('nama')
             ->paginate(15);
 
-        return view('nilai.nilai', compact('students'));
+        $trashCount = EvaluationDetail::onlyTrashed()->count();
+
+        return view('nilai.nilai', compact('students', 'trashCount'));
     }
 
     public function index(Request $request)

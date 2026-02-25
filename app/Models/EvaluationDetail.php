@@ -2,11 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EvaluationDetail extends Model
 {
-    protected $table = 'evaluation_details'; // Sesuaikan sama nama tabel di DB
+
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'evaluation_details';
+
+    protected $dates = ['deleted_at'];
 
     protected $fillable = [
 

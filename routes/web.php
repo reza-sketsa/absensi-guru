@@ -49,17 +49,25 @@ Route::middleware('auth')->group(function () {
     Route::get('/data', [StudentController::class, 'indexBlade'])
         ->name('students.data');
 
-    // =====================
-    // NILAI
-    // =====================
-
+    // Nilai
     Route::get('/nilai/input/{student}', [EvaluationController::class, 'create'])
         ->name('evaluation.create');
 
     Route::post('/nilai/store', [EvaluationController::class, 'store'])
         ->name('evaluation.store');
 
+    // Jika di JS Anda memanggil /evaluation-detail/{id}
+    Route::delete('/evaluation-detail/{idNilai}', [EvaluationController::class, 'destroyDetailNilai'])
+        ->name('evaluation.detail.destroy');
+
     // optional API student list
     Route::get('/students', [StudentController::class, 'index'])
         ->name('students.index');
+});
+
+//Recycle Bin
+Route::prefix('trash')->group(function () {
+    Route::get('/evaluations', [EvaluationController::class, 'trash'])->name('trash.index');
+    Route::put('/evaluations/{id}/restore', [EvaluationController::class, 'restore'])->name('trash.restore');
+    Route::delete('/evaluations/{id}/force-delete', [EvaluationController::class, 'forceDelete'])->name('trash.force-delete');
 });

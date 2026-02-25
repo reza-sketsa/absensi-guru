@@ -17,6 +17,10 @@ class Evaluation extends Model
         'tanggal'
     ];
 
+    protected $casts = [
+        'tanggal' => 'date',
+    ];
+
     public function details()
     {
         return $this->hasMany(EvaluationDetail::class, 'evaluation_id');

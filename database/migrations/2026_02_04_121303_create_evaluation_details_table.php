@@ -16,9 +16,8 @@ return new class extends Migration
             $table->foreignId('evaluation_id')->constrained('evaluations')->restrictOnDelete();
             $table->foreignId('student_id')->constrained('students')->restrictOnDelete();
             $table->float('nilai');
+            $table->softDeletes();
             $table->timestamps();
-
-            $table->unique(['evaluation_id', 'student_id']);
         });
     }
 

@@ -17,19 +17,19 @@ class EvaluationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-        $query = Evaluation::with(['details.student', 'subject']);
+        public function index(Request $request)
+        {
+            $query = Evaluation::with(['details.student', 'subject']);
 
-        if ($request->has('subject_id')) {
-            $query->where('subject_id', $request->subject_id);
+            if ($request->has('subject_id')) {
+                $query->where('subject_id', $request->subject_id);
+            }
+
+            return response()->json([
+                'status' => true,
+                'data' => $query->latest()->paginate(10)
+            ]);
         }
-
-        return response()->json([
-            'status' => true,
-            'data' => $query->latest()->paginate(10)
-        ]);
-    }
 
     /**
      * Show the form for creating a new resource.
@@ -49,6 +49,8 @@ class EvaluationController extends Controller
      */
     public function store(Request $request)
     {
+
+
         $validator = Validator::make($request->all(), [
             'schedule_id' => 'required|exists:schedules,id',
             'subject_id' => 'required|exists:subjects,id',
@@ -98,15 +100,13 @@ class EvaluationController extends Controller
             }
 
             foreach ($request->penilaian as $item) {
-                DB::table('evaluation_details')->updateOrInsert(
+                \App\Models\EvaluationDetail::updateOrCreate(
                     [
                         'evaluation_id' => $evaluation->id,
                         'student_id'    => $item['student_id'],
                     ],
                     [
                         'nilai'         => $item['nilai'],
-                        'updated_at'    => now(),
-                        'created_at'    => now(),
                     ]
                 );
             }
@@ -197,5 +197,78 @@ class EvaluationController extends Controller
                 'data' => $evaluation->load('details.student'),
             ]);
         });
+    }
+
+    public function destroyDetailNilai($id)
+    {
+        try {
+            $detail = \App\Models\EvaluationDetail::find($id);
+
+            if (!$detail) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Detail nilai tidak ditemukan'
+                ], 404);
+            }
+
+            $detail->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Nilai berhasil dihapus',
+                'Data' => [
+                    'id' => $id,
+                    'student_id' => $detail->student_id,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan pada server saat menghapus data. '
+            ], 500);
+        }
+    }
+
+    public function purgeOldScores()
+    {
+
+        $oldData = \App\Models\EvaluationDetail::onlyTrashed()
+            ->where('deleted_at', '<', now()->subDays(30));
+
+        $count = $oldData->count();
+        $oldData->forceDelete();
+
+        return response()->json([
+            'message' => "Berhasil membersihkan $count data sampah lama."
+        ]);
+    }
+
+    public function trash()
+    {
+        $trashedScores = \App\Models\EvaluationDetail::onlyTrashed()
+            ->with(['student', 'evaluation'])
+            ->latest('deleted_at')
+            ->get();
+
+        $trashCount = \App\Models\EvaluationDetail::onlyTrashed()->count();
+
+        return view('nilai.trash', compact('trashedScores'));
+    }
+
+    public function restore($id)
+    {
+        $detail = \App\Models\EvaluationDetail::onlyTrashed()->findOrFail($id);
+        $detail->restore();
+
+        return back()->with('Success', 'Nilai berhasil dipulihkan!');
+    }
+
+    public function forceDelete($id)
+    {
+        $detail = \App\Models\EvaluationDetail::onlyTrashed()->findOrFail($id);
+        $detail->forceDelete();
+
+        return back()->with('Success', 'Nilai berhasil dihapus permanen!');
     }
 }

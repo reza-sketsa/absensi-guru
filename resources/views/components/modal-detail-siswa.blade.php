@@ -13,12 +13,20 @@
                         <td>: {{ $student->nis }}</td>
                     </tr>
                     <tr>
+                        <td>Agama</td>
+                        <td>: {{ $student->agama }}</td>
+                    </tr>
+                    <tr>
                         <td>Alamat</td>
                         <td>: {{ $student->alamat }}</td>
                     </tr>
                     <tr>
                         <td>No. Telp</td>
                         <td>: {{ $student->no_telp }}</td>
+                    </tr>
+                    <tr>
+                        <td>No. Telp Ortu</td>
+                        <td>: {{ $student->no_telp_ortu }}</td>
                     </tr>
                 </table>
 
@@ -29,19 +37,29 @@
                     <thead class="table-light">
                         <tr>
                             <th>Mata Pelajaran</th>
+                            <th>Tanggal</th>
                             <th>Nilai</th>
                             <th>Predikat</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($student->evaluations as $detail)
-                            <tr>
+                            <tr id="row-nilai-{{ $detail->id }}">
                                 <td>{{ $detail->evaluation->nama_penilaian ?? 'N/A' }}</td>
+                                <td>{{ \Carbon\Carbon::parse($detail->evaluation->tanggal)->translatedFormat('d M Y') }}
+                                </td>
                                 <td>{{ $detail->nilai }}</td>
                                 <td>
                                     <span class="badge {{ $detail->nilai >= 75 ? 'bg-success' : 'bg-warning' }}">
                                         {{ $detail->nilai >= 75 ? 'Tuntas' : 'Remedial' }}
                                     </span>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 btn-hapus-nilai"
+                                        data-id="{{ $detail->id }}" title="Hapus Nilai">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
@@ -56,6 +74,9 @@
 
                 <h6><i class="bi bi-calendar-check"></i> Kehadiran</h6>
                 <div class="row text-center">
+                    <div class="col">
+                        <div class="border p-2 rounded bg-light"><strong>0</strong><br><small>Hadir</small></div>
+                    </div>
                     <div class="col">
                         <div class="border p-2 rounded bg-light"><strong>0</strong><br><small>Sakit</small></div>
                     </div>
