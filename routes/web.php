@@ -30,17 +30,29 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [AdminController::class, 'index']);
 
-    // absensi
-    Route::get('/absen', fn() => view('absen'));
-    Route::get('/absensi', [AttendanceController::class, 'index']);
-    Route::post('/absensi/store', [AttendanceController::class, 'store']);
+    // =====================
+    // ABSENSI
+    // =====================
+
+    Route::get('/absensi', [AttendanceController::class, 'index'])
+        ->name('absensi.index');
+
+    Route::post('/absensi/store', [AttendanceController::class, 'store'])
+        ->name('absensi.store');
+
     Route::get('/absensi-api', [AttendanceController::class, 'apiIndex']);
 
-    // halaman data siswa (blade)
+    // =====================
+    // DATA SISWA
+    // =====================
+
     Route::get('/data', [StudentController::class, 'indexBlade'])
         ->name('students.data');
 
-    // input nilai
+    // =====================
+    // NILAI
+    // =====================
+
     Route::get('/nilai/input/{student}', [EvaluationController::class, 'create'])
         ->name('evaluation.create');
 
