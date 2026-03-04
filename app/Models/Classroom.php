@@ -12,4 +12,19 @@ class Classroom extends Model
     {
         return $this->belongsTo(Teacher::class, 'walas_id');
     }
+
+    public function getNamaKelasAttribute()
+    {
+        return $this->tingkat . ' ' . $this->paralel;
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class, 'classroom_id');
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class, 'classroom_id');
+    }
 }

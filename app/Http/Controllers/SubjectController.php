@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Subject;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\SubjectRequest;
+use App\Models\Subject;
 
 class SubjectController extends Controller
 {
@@ -31,21 +30,9 @@ class SubjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(SubjectRequest $request)
     {
-        $rules = [
-            'nama_mapel' => 'required|string|unique:subjects,nama_mapel',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validasi gagal',
-            ], 422);
-        }
-        $subjects = Subject::create($request->all());
+        $subjects = Subject::create($request->validated());
 
         return response()->json([
             'status' => true,
@@ -73,28 +60,9 @@ class SubjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Subject $subject)
+    public function update(SubjectRequest $request, Subject $subject)
     {
-
-        if (!$subject) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Mapel tidak ada',
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'nama_mapel' => 'required|string|unique:subjects,nama_mapel,' . $subject->id
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'data' => $validator->errors()
-            ], 422);
-        }
-
-        $subject->update($request->all());
+        $subject->update($request->validated());
 
         return response()->json([
             'status' => true,

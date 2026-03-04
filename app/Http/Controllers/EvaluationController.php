@@ -2,117 +2,104 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AcademicYear;
+use App\Http\Requests\EvaluationRequest;
 use App\Models\Evaluation;
-use App\Models\Subject;
 use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 class EvaluationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-        public function index(Request $request)
-        {
-            $query = Evaluation::with(['details.student', 'subject']);
 
-            if ($request->has('subject_id')) {
-                $query->where('subject_id', $request->subject_id);
-            }
+    private function getTeacherId()
+    {
+        $user = Auth::user();
 
-            return response()->json([
-                'status' => true,
-                'data' => $query->latest()->paginate(10)
-            ]);
+        if (!$user) {
+            abort(401, 'Silahkan login kembali.');
         }
+
+        $teacher = $user->teacher ?: Teacher::where('user_id', $user->id)->first();
+
+        return $teacher ? $teacher->id : abort(403, 'User tidak terhubung ke data Guru.');
+    }
+
+    public function index(Request $request)
+    {
+        $query = Evaluation::with(['details.student', 'subject']);
+
+        if ($request->has('subject_id')) {
+            $query->where('subject_id', $request->subject_id);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $query->latest()->paginate(10)
+        ]);
+    }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Student $student)
+    public function create($schedule_id = null)
     {
-        $student->load('classroom');
+        if (!$schedule_id) {
+            return redirect()->route('guru.penilaian.index')->with('error', 'Silahkan pilih kelas terlebih dahulu.');
+        }
 
-        $subjects = Subject::all();
-        $teachers = Teacher::all();
+        $schedule = \App\Models\Schedule::with(['subject', 'classroom'])->findOrFail($schedule_id);
 
-        return view('nilai.input', compact(['student', 'subjects', 'teachers']));
+        $students = Student::where('classroom_id', $schedule->classroom_id)
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        return view('guru.nilai.input', compact('schedule', 'students'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(EvaluationRequest $request)
     {
 
-
-        $validator = Validator::make($request->all(), [
-            'schedule_id' => 'required|exists:schedules,id',
-            'subject_id' => 'required|exists:subjects,id',
-            'jenis' => 'required|in:Tugas,UTS,UAS',
-            'nama_penilaian' => 'required|string|max:30',
-            'tanggal' => 'required|date',
-            'penilaian' => 'required|array',
-            'penilaian.*.student_id' => 'required|exists:students,id',
-            'penilaian.*.nilai' => 'required|numeric|min:0|max:100'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $activeYear = AcademicYear::where('is_active', true)->first();
+        $teacherId = $this->getTeacherId();
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
 
         if (!$activeYear) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Tidak ada tahun ajaran aktif!'
-            ], 400);
+            return back()->with('error', 'Tidak ada tahun ajaran aktif!');
         }
 
-        return DB::transaction(function () use ($request, $activeYear) {
-
-            $evaluation = Evaluation::where('subject_id', $request->subject_id)
-                ->where('teacher_id', Auth::id())
-                ->where('jenis', $request->jenis)
-                ->where('nama_penilaian', $request->nama_penilaian)
-                ->where('academic_year_id', $activeYear->id)
-                ->first();
-
-            if (!$evaluation) {
-                $evaluation = Evaluation::create([
-                    'subject_id'     => $request->subject_id,
-                    'teacher_id'     => Auth::id(),
-                    'jenis'          => $request->jenis,
-                    'nama_penilaian' => $request->nama_penilaian,
+        return DB::transaction(function () use ($request, $activeYear, $teacherId) {
+            $evaluation = Evaluation::updateOrCreate(
+                [
+                    'subject_id'       => $request->subject_id,
+                    'teacher_id'       => $teacherId,
+                    'jenis'            => $request->jenis,
+                    'nama_penilaian'   => $request->nama_penilaian,
                     'academic_year_id' => $activeYear->id,
-                    'schedule_id'    => $request->schedule_id,
-                    'tanggal'        => $request->tanggal,
-                ]);
-            }
+                ],
+                [
+                    'schedule_id'      => $request->schedule_id,
+                    'tanggal'          => $request->tanggal,
+                ]
+            );
 
             foreach ($request->penilaian as $item) {
-                \App\Models\EvaluationDetail::updateOrCreate(
-                    [
-                        'evaluation_id' => $evaluation->id,
-                        'student_id'    => $item['student_id'],
-                    ],
-                    [
-                        'nilai'         => $item['nilai'],
-                    ]
-                );
+                if (isset($item['nilai']) && $item['nilai'] !== '') {
+                    \App\Models\EvaluationDetail::updateOrCreate(
+                        [
+                            'evaluation_id' => $evaluation->id,
+                            'student_id'    => $item['student_id'],
+                        ],
+                        [
+                            'nilai'         => $item['nilai'],
+                        ]
+                    );
+                }
             }
-
-            return redirect()->route('students.data')
-                ->with('success', 'Nilai berhasil diproses!');
+            return back()->with('success', 'Nilai berhasil disimpan!');
         });
     }
 
@@ -136,24 +123,8 @@ class EvaluationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Evaluation $evaluation)
+    public function update(EvaluationRequest $request, Evaluation $evaluation)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_penilaian' => 'required|string|max:30',
-            'jenis' => 'required|in:Tugas,UTS,UAS',
-            'tanggal' => 'required|date',
-            'penilaian' => 'required|array',
-            'penilaian.*.student_id' => 'required|exists:students,id',
-            'penilaian.*.nilai' => 'required|numeric|min:0|max:100',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         return DB::transaction(function () use ($request, $evaluation) {
             $evaluation->update($request->only(['nama_penilaian', 'jenis', 'tanggal']));
 
@@ -253,7 +224,7 @@ class EvaluationController extends Controller
 
         $trashCount = \App\Models\EvaluationDetail::onlyTrashed()->count();
 
-        return view('nilai.trash', compact('trashedScores'));
+        return view('guru.nilai.trash', compact('trashedScores'));
     }
 
     public function restore($id)

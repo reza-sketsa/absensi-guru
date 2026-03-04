@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('schedule_id')->constrained('schedules')->restrictOnDelete();
             $table->date('tanggal')->index();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['schedule_id', 'tanggal']);
         });

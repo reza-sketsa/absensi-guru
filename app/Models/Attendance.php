@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Attendance_detail;
+use App\Models\AttendanceDetail;
 use Illuminate\Database\Eloquent\Model;
 
 
@@ -10,14 +10,15 @@ class Attendance extends Model
 {
     protected $fillable = [
         'schedule_id',
+        'academic_year_id',
         'tanggal'
     ];
 
     public function details()
     {
-        // Relasi One-to-Many ke tabel attendance_details
-        return $this->hasMany(Attendance_detail::class, 'attendance_id');
+        return $this->hasMany(AttendanceDetail::class, 'attendance_id');
     }
+
     public function schedule()
     {
         return $this->belongsTo(Schedule::class);

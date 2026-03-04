@@ -8,7 +8,7 @@
     </div>
 @endif
 
-@extends('welcome')
+@extends('layouts.app')
 
 @section('content')
     <div class="container-fluid">

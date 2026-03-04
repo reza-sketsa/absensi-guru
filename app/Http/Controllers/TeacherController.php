@@ -2,131 +2,200 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
+use App\Models\Schedule;
+use App\Models\Student;
 use App\Models\Teacher;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TeacherController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // Helper privat untuk ambil Teacher ID dari User yang login
+    private function getTeacherId()
     {
-        $teacher = Teacher::with(['user', 'school'])->orderBy('nama_guru', 'asc')->get();
+        $user = Auth::user();
+        $teacher = $user->teacher ?: Teacher::where('user_id', $user->id)->first();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Data guru ditemukan',
-            'data' => $teacher
-        ], 200);
+        return $teacher ? $teacher->id : abort(403, 'User tidak terhubung ke data Guru.');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function index(Request $request)
     {
-        //
-    }
+        $teacherId = $this->getTeacherId();
+        $filter = request('filter', 'all'); // Default tampilkan semua jika tidak ada filter
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
-            'nama_guru' => 'required|string|max:100',
-            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
-            'nip' => 'required|unique:teachers,nip',
-            'tgl_lahir' => 'required|date',
-            'jk' => 'required|in:L,P',
-            'alamat' => 'required|string',
-            'no_telp' => 'required|string',
-            'school_id' => 'required|exists:schools,id'
-        ]);
+        $query = \App\Models\AttendanceDetail::whereHas('attendance.schedule', function ($q) use ($teacherId) {
+            $q->where('teacher_id', $teacherId);
+        });
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validasi gagal bang!',
-                'data' => $validator->errors()
-            ], 422);
+        // Logika Filter Rentang Waktu
+        if ($filter == 'weekly') {
+            $query->whereHas(
+                'attendance',
+                fn($q) =>
+                $q->whereBetween('tanggal', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            );
+        } elseif ($filter == 'monthly') {
+            $query->whereHas(
+                'attendance',
+                fn($q) =>
+                $q->whereMonth('tanggal', Carbon::now()->month)
+                    ->whereYear('tanggal', Carbon::now()->year)
+            );
+        } elseif ($filter == 'semester') {
+            // Asumsi Semester Ganjil: Juli-Desember, Genap: Januari-Juni
+            $month = Carbon::now()->month;
+            $startMonth = ($month >= 7) ? 7 : 1;
+            $endMonth = ($month >= 7) ? 12 : 6;
+
+            $query->whereHas(
+                'attendance',
+                fn($q) =>
+                $q->whereMonth('tanggal', '>=', $startMonth)
+                    ->whereMonth('tanggal', '<=', $endMonth)
+                    ->whereYear('tanggal', Carbon::now()->year)
+            );
         }
 
-        $teacher = Teacher::create($request->all());
+        $rawStats = $query->select('status', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Guru baru berhasil ditambahkan',
-            'data' => $teacher
-        ], 201);
+        $stats = [
+            'hadir' => $rawStats['Hadir'] ?? 0,
+            'izin'  => $rawStats['Izin']  ?? 0,
+            'sakit' => $rawStats['Sakit'] ?? 0,
+            'alpa'  => $rawStats['Alpa']  ?? 0,
+        ];
+
+        $lowAttendanceStudents = \App\Models\AttendanceDetail::whereHas('attendance.schedule', function ($q) use ($teacherId) {
+            $q->where('teacher_id', $teacherId);
+        })
+            ->whereIn('status', ['Alpa', 'Sakit', 'Izin']) // Fokus pada ketidakhadiran
+            // Gunakan filter yang sama dengan Chart
+            ->when($filter == 'weekly', fn($q) => $q->whereHas('attendance', fn($a) => $a->whereBetween('tanggal', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])))
+            ->when($filter == 'monthly', fn($q) => $q->whereHas('attendance', fn($a) => $a->whereMonth('tanggal', Carbon::now()->month)->whereYear('tanggal', Carbon::now()->year)))
+            ->when($filter == 'semester', function ($q) {
+                $month = Carbon::now()->month;
+                $start = ($month >= 7) ? 7 : 1;
+                $end = ($month >= 7) ? 12 : 6;
+                $q->whereHas('attendance', fn($a) => $a->whereMonth('tanggal', '>=', $start)->whereMonth('tanggal', '<=', $end));
+            })
+            ->select(
+                'student_id',
+                DB::raw('count(*) as total_tidak_hadir'),
+                DB::raw("SUM(CASE WHEN status = 'Alpa' THEN 1 ELSE 0 END) as total_alpa")
+            )
+            ->with('student:id,nama')
+            ->groupBy('student_id')
+            ->orderByDesc('total_alpa')
+            ->take(5)
+            ->get();
+
+        return view('guru.dashboard', compact('stats', 'filter', 'lowAttendanceStudents'));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Teacher $teacher)
+    public function showStudent($id)
     {
-        return response()->json([
-            'status' => true,
-            'data' => $teacher->load(['user', 'school'])
-        ]);
+        $student = \App\Models\Student::with('classroom')->findOrFail($id);
+
+        // Ambil semua riwayat absensi siswa ini yang diajar oleh guru yang sedang login
+        $teacherId = $this->getTeacherId();
+
+        $attendanceHistory = \App\Models\AttendanceDetail::where('student_id', $id)
+            ->whereHas('attendance.schedule', function ($q) use ($teacherId) {
+                $q->where('teacher_id', $teacherId);
+            })
+            ->with('attendance')
+            ->orderByDesc(function ($query) {
+                $query->select('tanggal')
+                    ->from('attendances')
+                    ->whereColumn('attendances.id', 'attendance_details.attendance_id')
+                    ->limit(1);
+            })
+            ->get();
+
+        // Hitung ringkasan status
+        $summary = [
+            'Hadir' => $attendanceHistory->where('status', 'Hadir')->count(),
+            'Sakit' => $attendanceHistory->where('status', 'Sakit')->count(),
+            'Izin'  => $attendanceHistory->where('status', 'Izin')->count(),
+            'Alpa'  => $attendanceHistory->where('status', 'Alpa')->count(),
+        ];
+
+        return view('guru.absensi.student-detail', compact('student', 'attendanceHistory', 'summary'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Teacher $teacher)
+    public function listClasses()
     {
-        //
+        $teacherId = $this->getTeacherId();
+
+        // Ambil kelas di mana guru ini mengajar atau menjadi wali kelas
+        $classrooms = \App\Models\Classroom::where('walas_id', $teacherId)
+            ->orWhereHas('schedules', function ($q) use ($teacherId) {
+                $q->where('teacher_id', $teacherId);
+            })
+            ->withCount('students')
+            ->get();
+
+        return view('guru.kelas.index', compact('classrooms'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Teacher $teacher)
+    public function showClassroom($id)
     {
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
-            'nama_guru' => 'required|string|max:100',
-            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
-            'nip' => 'required|unique:teachers,nip,' . $teacher->id,
-            'tgl_lahir' => 'required|date',
-            'jk' => 'required|in:L,P',
-            'alamat' => 'required|string',
-            'no_telp' => 'required|string',
-            'school_id' => 'required|exists:schools,id'
-        ]);
+        $classroom = \App\Models\Classroom::with(['students' => function ($q) {
+            $q->orderBy('nama', 'asc');
+        }])->findOrFail($id);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'data' => $validator->errors()
-            ], 422);
-        }
-
-        $teacher->update($request->all());
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Data guru berhasil diupdate',
-            'data' => $teacher
-        ], 200);
+        return view('guru.kelas.show', compact('classroom'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Teacher $teacher)
+    public function absensiIndex()
     {
-        $teacher->delete();
+        $teacherId = $this->getTeacherId();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Data Guru ' . $teacher->nama_guru . ' berhasil dihapus!'
+        $schedules = Schedule::with(['subject', 'classroom'])
+            ->where('teacher_id', $teacherId)
+            ->get();
 
-        ], 200);
+        $recent_attendances = Attendance::with(['schedule.subject', 'schedule.classroom'])
+            ->withCount([
+                'details as h' => fn($q) => $q->where('status', 'Hadir'),
+                'details as i' => fn($q) => $q->where('status', 'Izin'),
+                'details as s' => fn($q) => $q->where('status', 'Sakit'),
+                'details as a' => fn($q) => $q->where('status', 'Alpa'),
+            ])
+            ->whereHas('schedule', fn($q) => $q->where('teacher_id', $teacherId))
+            ->latest('tanggal')
+            ->take(5)
+            ->get();
+
+        return view('guru.absensi.absen', compact('schedules', 'recent_attendances'));
+    }
+
+    public function penilaianIndex()
+    {
+        $teacherId = $this->getTeacherId();
+
+        $schedules = \App\Models\Schedule::with(['subject', 'classroom'])
+            ->where('teacher_id', $teacherId)
+            ->get();
+
+        return view('guru.nilai.nilai', compact('schedules'));
+    }
+
+    // PROSES: Tampilkan Form Absen (Daftar Siswa)
+    public function createAbsensi($schedule_id)
+    {
+        $schedule = Schedule::with(['classroom', 'subject'])->findOrFail($schedule_id);
+        $students = Student::where('classroom_id', $schedule->classroom_id)
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        return view('guru.absensi.input-absen', compact('schedule', 'students'));
     }
 }

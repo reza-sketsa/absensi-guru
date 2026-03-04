@@ -14,14 +14,16 @@
 
 <body>
 
-    @include('components.navbar')
+    @if (!request()->is('login'))
+        @include('components.navbar')
+    @endif
 
     <main class="container mt-4 mb-5">
         @yield('content')
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    @include('components.scripts')
+    @stack('scripts')
 </body>
 
 </html>

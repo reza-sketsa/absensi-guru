@@ -1,60 +1,31 @@
 @extends('welcome')
 
-@section('title', 'Home')
-
 @section('content')
+    <div class="container py-4">
+        <h4 class="fw-bold mb-4">Daftar Jadwal Mengajar</h4>
 
-    <div class="mb-3">
-        <h4 class="app-title fw-bold">Halo, Guru 👋</h4>
-        <p class="app-muted">Selamat datang di aplikasi absensi sekolah</p>
-    </div>
+        <div class="row">
+            {{-- Pastikan variabel ini dikirim dari TeacherController --}}
+            @forelse($schedules as $item)
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="fw-bold">{{ $item->subject->nama_mapel }}</h5>
+                            <p class="text-muted">Kelas: {{ $item->classroom->tingkat }}-{{ $item->classroom->paralel }}</p>
 
-    <div class="row g-3 mb-4">
-
-        <div class="col-6">
-            <a href="/absen" class="text-decoration-none text-dark">
-                <div class="card app-card shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-calendar-check fs-1 text-success"></i>
-                        <p class="mt-2 mb-0 fw-semibold">Absen</p>
+                            {{-- Link ini yang akan membawa 'schedule_id' ke halaman absen --}}
+                            <a href="{{ route('absensi.create', ['schedule_id' => $item->id]) }}"
+                                class="btn btn-primary w-100">
+                                Buka Absensi
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </a>
-        </div>
-
-        <div class="col-6">
-            <a href="/absensi" class="text-decoration-none text-dark">
-                <div class="card app-card shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-clipboard-data fs-1 text-primary"></i>
-                        <p class="mt-2 mb-0 fw-semibold">Absensi</p>
-                    </div>
+            @empty
+                <div class="col-12">
+                    <div class="alert alert-info">Belum ada jadwal mengajar untuk profil Anda.</div>
                 </div>
-            </a>
-        </div>
-
-    </div>
-
-
-    <div class="card app-card shadow-sm mb-5">
-        <div class="card-body">
-
-            <h5 class="fw-bold mb-3">Data Siswa</h5>
-
-            @if (isset($students) && count($students) > 0)
-
-                @foreach ($students as $s)
-                    <div class="border-bottom py-2">
-                        <b>{{ $s->nama }}</b><br>
-                        <small>NIS: {{ $s->nis }}</small>
-                    </div>
-                @endforeach
-            @else
-                <p class="text-muted">Data siswa kosong jir 😹</p>
-
-            @endif
-
+            @endforelse
         </div>
     </div>
-
 @endsection

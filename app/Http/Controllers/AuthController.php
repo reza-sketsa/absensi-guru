@@ -15,20 +15,30 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
+            'username' => 'required',
+            'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->intended('/dashboard');
+            $user = Auth::user();
+
+            // Cek Role dan arahkan ke dashboard yang sesuai
+            if ($user->role === 'Admin') {
+                return redirect()->intended(route('admin.dashboard'));
+            } elseif ($user->role === 'Guru') {
+                return redirect()->intended(route('guru.dashboard'));
+            }
+
+            return redirect('/');
         }
 
-        return back()
-            ->withErrors(['username' => 'Username atau password salah.'])
-            ->onlyInput('username');
+        return back()->withErrors([
+            'username' => 'Akun tidak ditemukan atau password salah.',
+        ]);
     }
+
 
     public function logout(Request $request)
     {

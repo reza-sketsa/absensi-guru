@@ -4,30 +4,24 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateEvaluationRequest extends FormRequest
+class EvaluationRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'nama_penilaian' => 'sometimes|required|string|max:30',
-            'jenis' => 'sometimes|required|in:Tugas,UTS,UAS',
-            'tanggal' => 'sometimes|required|date',
-            'penilaian' => 'sometimes|required|array',
-            'penilaian.*.student_id' => 'sometimes|required|exists:students,id',
-            'penilaian.*.nilai' => 'sometimes|required|numeric'
+            'schedule_id'            => 'sometimes|required|exists:schedules,id',
+            'subject_id'             => 'sometimes|required|exists:subjects,id',
+            'jenis'                  => 'required|in:Tugas,UH,UTS,UAS',
+            'nama_penilaian'         => 'required|string|max:30',
+            'tanggal'                => 'required|date',
+            'penilaian'              => 'required|array',
+            'penilaian.*.student_id' => 'required|exists:students,id',
+            'penilaian.*.nilai'      => 'nullable|numeric|min:0|max:100'
         ];
     }
 }

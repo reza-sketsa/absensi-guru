@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ScheduleRequest;
 use App\Models\Schedule;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ScheduleController extends Controller
 {
@@ -33,26 +32,9 @@ class ScheduleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ScheduleRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'teacher_id'   => 'required|exists:teachers,id',
-            'subject_id'   => 'required|exists:subjects,id',
-            'classroom_id' => 'required|exists:classrooms,id',
-            'hari'         => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
-            'jam_mulai'    => 'required',
-            'jam_habis'    => 'required|after:jam_mulai',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validator gagal, silahkan cek',
-                'data' => $validator->errors()
-            ], 422);
-        }
-
-        $schedule = Schedule::create($request->all());
+        $schedule = Schedule::create($request->validated());
 
         return response()->json([
             'status' => true,
@@ -84,26 +66,10 @@ class ScheduleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Schedule $schedule)
+    public function update(ScheduleRequest $request, Schedule $schedule)
     {
-        $validator = Validator::make($request->all(), [
-            'teacher_id'   => 'required|exists:teachers,id',
-            'subject_id'   => 'required|exists:subjects,id',
-            'classroom_id' => 'required|exists:classrooms,id',
-            'hari'         => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
-            'jam_mulai'    => 'required',
-            'jam_habis'    => 'required|after:jam_mulai',
-        ]);
+        $schedule->update($request->validated());
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Jadwal gagal ditambah',
-                'data' => $validator->errors()
-            ], 422);
-        }
-
-        $schedule->update($request->all());
         return response()->json([
             'status' => true,
             'message' => 'Jadwal berhasil ditambahkan',

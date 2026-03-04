@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ClassroomRequest;
 use App\Models\Classroom;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ClassroomController extends Controller
 {
@@ -36,33 +35,8 @@ class ClassroomController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ClassroomRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'tingkat' => 'required|in:VII,VIII,IX',
-            'paralel' => 'required|in:A,B,C,D,E,F,G,H',
-            'walas_id' => 'required|exists:teachers,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validasi gagal',
-                'data' => $validator->errors()
-            ], 422);
-        }
-
-        $exists = Classroom::where('tingkat', $request->tingkat)
-            ->where('paralel', $request->paralel)
-            ->exists();
-
-        if ($exists) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Kelas ' . $request->tingkat . '-' . $request->paralel . ' sudah ada!'
-            ], 422);
-        }
-
         $classroom = Classroom::create($request->all());
 
         return response()->json([
@@ -94,33 +68,8 @@ class ClassroomController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Classroom $classroom)
+    public function update(ClassroomRequest $request, Classroom $classroom)
     {
-        $validator = Validator::make($request->all(), [
-            'tingkat' => 'required|in:VII,VIII,IX',
-            'paralel' => 'required|in:A,B,C,D,E,F,G,H',
-            'walas_id' => 'required|exists:teachers,id'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'data' => $validator->errors()
-            ], 422);
-        }
-
-        $exists = Classroom::where('tingkat', $request->tingkat)
-            ->where('paralel', $request->paralel)
-            ->where('id', '!=', $classroom->id)
-            ->exists();
-
-        if ($exists) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Gagal update kelas ' . $request->tingkat . '-' . $request->paralel . ' sudah ada!'
-            ], 422);
-        }
-
         $classroom->update($request->all());
 
         return response()->json([
