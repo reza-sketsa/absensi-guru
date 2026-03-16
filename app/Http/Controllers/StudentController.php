@@ -20,7 +20,7 @@ class StudentController extends Controller
 
         $trashCount = EvaluationDetail::onlyTrashed()->count();
 
-        return view('nilai.nilai', compact('students', 'trashCount'));
+        return view('guru.nilai.nilai', compact('students', 'trashCount'));
     }
 
     public function index(Request $request)
