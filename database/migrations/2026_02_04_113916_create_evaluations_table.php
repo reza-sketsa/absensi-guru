@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('nama_penilaian', 50);
             $table->date('tanggal');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Evaluation_detail;
+use App\Models\Evaluationdetail;
 use Illuminate\Http\Request;
 
 class EvaluationDetailController extends Controller
@@ -34,7 +34,7 @@ class EvaluationDetailController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Evaluation_detail $evaluation_detail)
+    public function show(EvaluationDetail $evaluationDetail)
     {
         //
     }
@@ -42,7 +42,7 @@ class EvaluationDetailController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Evaluation_detail $evaluation_detail)
+    public function edit(EvaluationDetail $evaluationDetail)
     {
         //
     }
@@ -50,7 +50,7 @@ class EvaluationDetailController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Evaluation_detail $evaluation_detail)
+    public function update(Request $request, EvaluationDetail $evaluationDetail)
     {
         //
     }
@@ -58,7 +58,7 @@ class EvaluationDetailController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Evaluation_detail $evaluation_detail)
+    public function destroy(EvaluationDetail $evaluationDetail)
     {
         //
     }

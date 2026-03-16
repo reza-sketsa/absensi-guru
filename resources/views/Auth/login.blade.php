@@ -19,13 +19,24 @@
 
                     <div class="mb-3">
                         <label class="form-label">Username</label>
-                        <input type="text" name="username" value="{{ old('username') }}" class="form-control" required
-                            autofocus>
+                        <input type="text" name="username" class="form-control @error('username') is-invalid @enderror"
+                            value="{{ old('username') }}" required autofocus>
+                        @error('username')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" required>
+                        <div class="input-group">
+                            <input type="password" name="password" id="passwordField" class="form-control" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye" id="eyeIcon"></i>
+                            </button>
+                            @error('password')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
                     </div>
 
                     <div class="form-check mb-3">
@@ -43,3 +54,7 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    @include('components.scripts')
+@endpush

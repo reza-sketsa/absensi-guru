@@ -7,7 +7,7 @@
                 <h6 class="fw-bold">Input Nilai: {{ $schedule->subject->nama }}</h6>
                 <p class="text-muted small">Kelas {{ $schedule->classroom->tingkat }} {{ $schedule->classroom->paralel }}</p>
 
-                <form action="{{ route('evaluation.store') }}" method="POST">
+                <form action="{{ route('guru.evaluations.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="schedule_id" value="{{ $schedule->id }}">
                     <input type="hidden" name="subject_id" value="{{ $schedule->subject_id }}">

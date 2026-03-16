@@ -25,8 +25,14 @@ class Schedule extends Model
     {
         return $this->belongsTo(Subject::class, 'subject_id');
     }
+
     public function classroom()
     {
         return $this->belongsTo(Classroom::class, 'classroom_id');
+    }
+
+    public function evaluations()
+    {
+        return $this->hasMany(Evaluation::class, 'schedule_id');
     }
 }
