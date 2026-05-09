@@ -72,7 +72,7 @@ class ScheduleController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Jadwal berhasil ditambahkan',
+            'message' => 'Jadwal berhasil diperbarui',
             'data' => $schedule
         ], 200);
     }
@@ -82,11 +82,18 @@ class ScheduleController extends Controller
      */
     public function destroy(Schedule $schedule)
     {
+        if ($schedule->attendances()->exists() || $schedule->evaluations()->exists()) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Jadwal tidak dapat dihapus karena masih memiliki data absensi atau penilaian.'
+            ], 422);
+        }
+
         $schedule->delete();
 
         return response()->json([
-            'status' => true,
-            'message' => 'Jadwal berhasil dihapus secara permanen'
-        ], 200);
+            'status'  => true,
+            'message' => 'Jadwal berhasil dihapus.'
+        ]);
     }
 }

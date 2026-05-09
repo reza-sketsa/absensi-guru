@@ -31,11 +31,26 @@ class EvaluationController extends Controller
     {
         $teacherId = $this->getTeacherId();
 
-        $schedules = \App\Models\Schedule::with(['subject', 'classroom', 'evaluations' => function ($q) {
-            $q->withTrashed()->orderBy('tanggal', 'desc')->take(10);
-        }])
-            ->where('teacher_id', $teacherId)
-            ->get();
+        $scheduleIds = \App\Models\Schedule::where('teacher_id', $teacherId)
+            ->whereHas('subject')
+            ->whereHas('classroom')
+            ->selectRaw('MIN(id) as id')
+            ->groupBy('teacher_id', 'subject_id', 'classroom_id')
+            ->pluck('id');
+
+        $schedules = \App\Models\Schedule::with(['subject', 'classroom'])
+            ->whereIn('id', $scheduleIds)
+            ->get()
+            ->map(function ($schedule) use ($teacherId) {
+                $schedule->all_evaluations = \App\Models\Evaluation::where('subject_id', $schedule->subject_id)
+                    ->where('classroom_id', $schedule->classroom_id)
+                    ->where('teacher_id', $teacherId)
+                    ->latest()
+                    ->take(5)
+                    ->get();
+
+                return $schedule;
+            });
 
         return view('guru.nilai.nilai', compact('schedules'));
     }
@@ -63,50 +78,46 @@ class EvaluationController extends Controller
      */
     public function store(EvaluationRequest $request)
     {
-        $teacherId = $this->getTeacherId();
+        $teacherId  = $this->getTeacherId();
+        $validated  = $request->validated();
         $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
 
         if (!$activeYear) {
             return back()->with('error', 'Tahun ajaran aktif belum diatur oleh admin.');
         }
 
+        $schedule = \App\Models\Schedule::findOrFail($validated['schedule_id']);
 
-        $schedule = \App\Models\Schedule::findOrFail($request->schedule_id);
+        $evaluation = Evaluation::updateOrCreate(
+            [
+                'subject_id'       => $validated['subject_id'],
+                'classroom_id'     => $schedule->classroom_id,
+                'teacher_id'       => $teacherId,
+                'jenis'            => $validated['jenis'],
+                'nama_penilaian'   => $validated['nama_penilaian'],
+                'academic_year_id' => $activeYear->id,
+            ],
+            [
+                'schedule_id' => $validated['schedule_id'],
+                'tanggal'     => $validated['tanggal'],
+            ]
+        );
 
-        return DB::transaction(function () use ($request, $activeYear, $teacherId, $schedule) {
-            $evaluation = Evaluation::updateOrCreate(
-                [
-                    'schedule_id'      => $request->schedule_id,
-                    'subject_id'       => $request->subject_id,
-                    'teacher_id'       => $teacherId,
-                    'jenis'            => $request->jenis,
-                    'nama_penilaian'   => $request->nama_penilaian,
-                    'academic_year_id' => $activeYear->id,
-                ],
-                [
-                    'schedule_id'      => $request->schedule_id,
-                    'tanggal'          => $request->tanggal,
-                ]
-            );
-
-            foreach ($request->penilaian as $item) {
-                if (isset($item['nilai']) && $item['nilai'] !== '') {
-                    \App\Models\EvaluationDetail::updateOrCreate(
-                        [
-                            'evaluation_id' => $evaluation->id,
-                            'student_id'    => $item['student_id'],
-                        ],
-                        [
-                            'nilai'         => $item['nilai'],
-                        ]
-                    );
-                }
+        foreach ($validated['penilaian'] as $studentId => $data) {
+            if (isset($data['nilai']) && $data['nilai'] !== '') {
+                EvaluationDetail::updateOrCreate(
+                    [
+                        'evaluation_id' => $evaluation->id,
+                        'student_id'    => $studentId,
+                    ],
+                    ['nilai' => $data['nilai']]
+                );
             }
-            return redirect()->route('guru.evaluations.index')
-                ->with('success', 'Nilai siswa berhasil di input.');
-        });
-    }
+        }
 
+        return redirect()->route('guru.evaluations.index')
+            ->with('success', 'Nilai siswa berhasil di input.');
+    }
     /**
      * Display the specified resource.
      */
@@ -122,89 +133,75 @@ class EvaluationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(Evaluation $evaluation)
     {
-        $evaluation = Evaluation::with(['details.student', 'subject', 'classroom'])->findOrFail($id);
+        $evaluation->load(['subject', 'classroom']);
+        $students = Student::where('classroom_id', $evaluation->classroom_id)
+            ->orderBy('nama', 'asc')
+            ->get()
+            ->map(function ($student) use ($evaluation) {
+                $detail = EvaluationDetail::where('evaluation_id', $evaluation->id)
+                    ->where('student_id', $student->id)
+                    ->first();
 
-        return view('guru.nilai.edit', compact('evaluation'));
+                $student->nilai_saat_ini = $detail ? $detail->nilai : null;
+
+                return $student;
+            });
+
+        return view('guru.nilai.edit', compact('evaluation', 'students'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(EvaluationRequest $request, Evaluation $evaluation)
     {
-        $request->validate([
-            'nama_penilaian' => 'required|string|max:255',
-            'tanggal' => 'required|date',
-            'penilaian.*.nilai' => 'required|numeric|min:0|max:100',
-        ]);
+        DB::transaction(function () use ($request, $evaluation) {
+            $evaluation->update($request->only(['nama_penilaian', 'tanggal', 'jenis']));
 
-        DB::transaction(function () use ($request, $id) {
-            $evaluation = Evaluation::findOrFail($id);
+            $inputPenilaian = $request->input('penilaian', []);
 
-            $evaluation->update([
-                'nama_penilaian' => $request->nama_penilaian,
-                'tanggal' => $request->tanggal,
-                'jenis' => $request->jenis,
-            ]);
-
-            foreach ($request->penilaian as $detailId => $data) {
-                EvaluationDetail::where('id', $detailId)
-                    ->where('evaluation_id', $evaluation->id)
-                    ->update(['nilai' => $data['nilai']]);
+            foreach ($inputPenilaian as $studentId => $data) {
+                if (isset($data['nilai']) && $data['nilai'] !== '') {
+                    EvaluationDetail::updateOrCreate(
+                        [
+                            'evaluation_id' => $evaluation->id,
+                            'student_id' => $studentId,
+                        ],
+                        [
+                            'nilai' => $data['nilai'],
+                        ]
+                    );
+                }
             }
         });
-
-        return redirect()->route('guru.evaluations.show', $id)
-            ->with('success', 'Data penilaian berhasil diperbarui!');
-    }
-
-    public function destroyDetailNilai($id)
-    {
-        try {
-            $detail = EvaluationDetail::findOrFail($id);
-            $evaluationId = $detail->evaluation_id;
-
-            $detail->delete();
-
-            return redirect()->route('evaluation.show', $evaluationId)
-                ->with('success', 'Nilai siswa berhasil dihapus.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Gagal menghapus nilai: ' . $e->getMessage());
-        }
-
-        return redirect()->route('guru.evaluations.show', $evaluationId) // Tambahkan 'guru.'
-            ->with('success', 'Nilai siswa berhasil dihapus.');
+        return redirect()->route('guru.evaluations.show', $evaluation->id)
+            ->with('success', 'Data dan nilai siswa berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
         try {
             $evaluation = Evaluation::findOrFail($id);
-            $evaluation->details()->delete();
+            $evaluation->details()->each(fn($d) => $d->delete());
             $evaluation->delete();
 
-            return redirect()->route('guru.penilaian.index')
+            return redirect()->route('guru.evaluations.index')
                 ->with('success', 'Data penilaian berhasil dipindahkan ke tempat sampah.');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
         }
-
-        return redirect()->route('guru.penilaian.index') // Sesuaikan dengan name di web.php
-            ->with('success', 'Data penilaian berhasil dipindahkan...');
     }
 
     public function trash()
     {
-        $trashedScores = \App\Models\EvaluationDetail::onlyTrashed()
-            ->with(['student', 'evaluation'])
+        $trashedEvaluations = Evaluation::onlyTrashed()
+            ->with(['subject', 'classroom', 'details'])
             ->latest('deleted_at')
             ->get();
 
-        $trashCount = \App\Models\EvaluationDetail::onlyTrashed()->count();
-
-        return view('guru.nilai.trash', compact('trashedScores'));
+        return view('guru.nilai.trash', compact('trashedEvaluations'));
     }
 
     public function restore($id)
@@ -222,11 +219,12 @@ class EvaluationController extends Controller
         }
     }
 
-    public function restoreDetailNilai($id)
+    public function forceDeleteEvaluation($id)
     {
-        $detail = EvaluationDetail::withTrashed()->findOrFail($id);
-        $detail->restore();
+        $evaluation = Evaluation::onlyTrashed()->findOrFail($id);
+        $evaluation->details()->forceDelete();
+        $evaluation->forceDelete();
 
-        return back()->with('success', 'Nilai siswa berhasil dikembalikan!');
+        return back()->with('success', 'Data penilaian dihapus permanen.');
     }
 }

@@ -143,4 +143,18 @@
             showConfirmButton: false
         });
     @endif
+
+
+    // jadwal
+    const selectKelas = document.getElementById('selectKelas');
+    if (selectKelas) {
+        selectKelas.addEventListener('change', function() {
+            const kelasId = this.value;
+            if (!kelasId) return;
+
+            const hari = selectKelas.getAttribute('data-hari');
+            const baseUrl = selectKelas.getAttribute('data-url');
+            window.location.href = `${baseUrl}?classroom_id=${kelasId}&hari=${hari}`;
+        });
+    }
 </script>

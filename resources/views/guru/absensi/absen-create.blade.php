@@ -12,7 +12,7 @@
             </div>
         </div>
 
-        <form action="{{ route('absensi.store') }}" method="POST">
+        <form action="{{ route('guru.absensi.store') }}" method="POST">
             @csrf
             <input type="hidden" name="schedule_id" value="{{ $schedule->id }}">
             <input type="hidden" name="tanggal" value="{{ date('Y-m-d') }}">

@@ -2,10 +2,11 @@
 
 @section('content')
     <div class="container py-4">
-        <div class="mb-4">
-            <a href="{{ route('guru.dashboard') }}" class="btn btn-sm btn-light shadow-sm">
-                <i class="bi bi-arrow-left"></i> Kembali ke Dashboard
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ route('guru.kelas.index') }}" class="btn btn-outline-secondary border-0 btn-sm me-3">
+                <i class="bi bi-arrow-left fs-4"></i>
             </a>
+            <h5 class="fw-bold mb-0">Detail Absensi Siswa</h5>
         </div>
 
         <div class="row">
@@ -43,7 +44,6 @@
                                     <tr>
                                         <th>Tanggal</th>
                                         <th>Status</th>
-                                        <th>Keterangan</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -61,11 +61,10 @@
                                                     {{ $history->status }}
                                                 </span>
                                             </td>
-                                            <td class="small text-muted">{{ $history->keterangan ?? '-' }}</td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="3" class="text-center py-4">Belum ada riwayat absensi.</td>
+                                            <td colspan="2" class="text-center py-4">Belum ada riwayat absensi.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>

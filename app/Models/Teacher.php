@@ -13,6 +13,7 @@ class Teacher extends Model
         'agama',
         'nip',
         'jk',
+        'tgl_lahir',
         'alamat',
         'no_telp',
         'school_id'
@@ -26,5 +27,10 @@ class Teacher extends Model
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class, 'teacher_id');
     }
 }

@@ -37,7 +37,7 @@ class ClassroomController extends Controller
      */
     public function store(ClassroomRequest $request)
     {
-        $classroom = Classroom::create($request->all());
+        $classroom = Classroom::create($request->validated());
 
         return response()->json([
             'status' => true,
@@ -70,7 +70,7 @@ class ClassroomController extends Controller
      */
     public function update(ClassroomRequest $request, Classroom $classroom)
     {
-        $classroom->update($request->all());
+        $classroom->update($request->validated());
 
         return response()->json([
             'status' => true,
@@ -84,12 +84,18 @@ class ClassroomController extends Controller
      */
     public function destroy(Classroom $classroom)
     {
+        if ($classroom->students()->exists() || $classroom->schedules()->exists()) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Kelas tidak dapat dihapus karena masih memiliki siswa atau jadwal aktif.'
+            ], 422);
+        }
+
         $classroom->delete();
 
         return response()->json([
-            'status' => true,
-            'message' => 'Kelas ' . $classroom->tingkat . '-' . $classroom->paralel . ' berhasil di hapus!'
-
-        ], 200);
+            'status'  => true,
+            'message' => 'Kelas ' . $classroom->tingkat . '-' . $classroom->paralel . ' berhasil dihapus.'
+        ]);
     }
 }

@@ -8,9 +8,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Evaluation extends Model
 {
+
+    use SoftDeletes;
+
     protected $fillable = [
         'schedule_id',
         'subject_id',
+        'classroom_id',
         'teacher_id',
         'academic_year_id',
         'jenis',
@@ -21,8 +25,6 @@ class Evaluation extends Model
     protected $casts = [
         'tanggal' => 'date',
     ];
-
-    use SoftDeletes;
 
     protected $dates = ['deleted_at'];
 

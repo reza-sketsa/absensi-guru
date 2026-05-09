@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Requests\TeacherRequest;
 use App\Models\Teacher;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class TeacherController extends Controller
 {
     public function index()
     {
-        $teachers = Teacher::with('user')->get();
+        $teachers = Teacher::with('user')
+            ->orderBy('nama_guru', 'asc')
+            ->get();
+
         return view('admin.guru.index', compact('teachers'));
     }
 
@@ -22,45 +25,34 @@ class TeacherController extends Controller
         return view('admin.guru.create');
     }
 
-    public function store(Request $request)
+    public function store(TeacherRequest $request)
     {
-
-        $request->validate([
-            'nip' => 'required|unique:teachers,nip',
-            'username' => 'required|unique:users,username',
-            'nama_guru' => 'required',
-            'password' => 'required|min:6',
-            'jk' => 'required|in:L,P',
-            'school_id' => 'required'
-        ]);
+        $validated = $request->validated();
 
         try {
-            DB::transaction(function () use ($request) {
-                // 1. Buat Akun User
+            DB::transaction(function () use ($validated) {
                 $user = User::create([
-                    'name' => $request->nama_guru,
-                    'username' => $request->username,
-                    'password' => Hash::make($request->password), // Lebih aman pake Hash::make
-                    'role' => 'Guru',
+                    'name'     => $validated['nama_guru'],
+                    'username' => $validated['username'],
+                    'password' => Hash::make($validated['password']),
+                    'role'     => 'Guru',
                 ]);
 
-                // 2. Buat Profil Teacher
                 Teacher::create([
-                    'user_id' => $user->id,
-                    'nama_guru' => $request->nama_guru,
-                    'nip' => $request->nip,
-                    'jk' => $request->jk,
-                    'agama' => $request->agama,
-                    'tgl_lahir' => $request->tgl_lahir,
-                    'alamat' => $request->alamat,
-                    'no_telp' => $request->no_telp,
-                    'school_id' => $request->school_id ?? 1,
+                    'user_id'   => $user->id,
+                    'nama_guru' => $validated['nama_guru'],
+                    'nip'       => $validated['nip'],
+                    'jk'        => $validated['jk'],
+                    'agama'     => $validated['agama']    ?? null,
+                    'tgl_lahir' => $validated['tgl_lahir'] ?? null,
+                    'alamat'    => $validated['alamat']   ?? null,
+                    'no_telp'   => $validated['no_telp']  ?? null,
+                    'school_id' => $validated['school_id'] ?? 1,
                 ]);
             });
 
             return redirect()->route('admin.guru.index')->with('success', 'Guru berhasil didaftarkan.');
         } catch (\Exception $e) {
-            // Jika error, kembali ke form dengan pesan error
             return back()->withInput()->withErrors(['error' => 'Gagal menyimpan data: ' . $e->getMessage()]);
         }
     }
@@ -71,40 +63,30 @@ class TeacherController extends Controller
         return view('admin.guru.edit', compact('teacher'));
     }
 
-    public function update(Request $request, $id)
+    public function update(TeacherRequest $request, $id)
     {
-        $teacher = Teacher::findOrFail($id);
-        $user = User::findOrFail($teacher->user_id);
-
-        $request->validate([
-            'nip' => 'required|unique:teachers,nip,' . $id,
-            'username' => 'required|unique:users,username,' . $user->id,
-            'nama_guru' => 'required',
-            'jk' => 'required|in:L,P',
-            'password' => 'nullable|min:6', // Password boleh kosong kalau gak mau diubah
-        ]);
+        $validated = $request->validated();
+        $teacher   = Teacher::findOrFail($id);
+        $user      = User::findOrFail($teacher->user_id);
 
         try {
-            DB::transaction(function () use ($request, $teacher, $user) {
-                // 1. Update Tabel Users
-                $userData = [
-                    'username' => $request->username,
-                ];
-                // Update password cuma kalau diisi
-                if ($request->filled('password')) {
-                    $userData['password'] = Hash::make($request->password);
+            DB::transaction(function () use ($validated, $teacher, $user) {
+                $userData = ['username' => $validated['username']];
+
+                if (!empty($validated['password'])) {
+                    $userData['password'] = Hash::make($validated['password']);
                 }
+
                 $user->update($userData);
 
-                // 2. Update Tabel Teachers
                 $teacher->update([
-                    'nama_guru' => $request->nama_guru,
-                    'nip'       => $request->nip,
-                    'jk'        => $request->jk,
-                    'agama'     => $request->agama,
-                    'tgl_lahir' => $request->tgl_lahir,
-                    'alamat'    => $request->alamat,
-                    'no_telp'   => $request->no_telp,
+                    'nama_guru' => $validated['nama_guru'],
+                    'nip'       => $validated['nip'],
+                    'jk'        => $validated['jk'],
+                    'agama'     => $validated['agama']    ?? null,
+                    'tgl_lahir' => $validated['tgl_lahir'] ?? null,
+                    'alamat'    => $validated['alamat']   ?? null,
+                    'no_telp'   => $validated['no_telp']  ?? null,
                 ]);
             });
 
@@ -114,16 +96,16 @@ class TeacherController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(String $id)
     {
         try {
             $teacher = Teacher::findOrFail($id);
             $user = User::findOrFail($teacher->user_id);
 
             DB::transaction(function () use ($teacher, $user) {
-                // Hapus data guru dulu
+                // hapus data guru
                 $teacher->delete();
-                // Baru hapus data user (akun login)
+                // hapus akun
                 $user->delete();
             });
 

@@ -10,6 +10,17 @@
             </div>
         </div>
 
+        <div class="mb-4">
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $hari)
+                    <a href="?hari={{ $hari }}"
+                        class="btn {{ $selectedDay == $hari ? 'btn-primary' : 'btn-outline-primary' }} btn-sm px-3 rounded-pill">
+                        {{ $hari }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
         {{-- Jadwal Mengajar --}}
         <h5 class="fw-bold mb-3"><i class="bi bi-calendar3 me-2"></i>Jadwal Mengajar Hari Ini</h5>
         <div class="row mb-5">
@@ -22,9 +33,33 @@
                             <p class="text-muted small">
                                 Kelas: {{ $item->classroom->tingkat }}-{{ $item->classroom->paralel }}
                             </p>
+                            <p class="text-muted small mb-0">
+                                <i class="bi bi-calendar2 me-1"></i>Hari: {{ $item->hari }}
+                            </p>
+                            <p class="text-muted small mb-0">
+                                <i class="bi bi-clock me-1"></i>
+                                {{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') }} -
+                                {{ \Carbon\Carbon::parse($item->jam_habis)->format('H:i') }}
+                            </p>
                             <hr>
-                            <a href="{{ route('guru.absensi.create', $item->id) }}" class="btn btn-primary w-100">
-                                <i class="bi bi-calendar-check me-2"></i>Mulai Absen
+                            @if ($isToday)
+                                @if ($item->sudah_absen)
+                                    <a href="{{ route('guru.absensi.edit', $item->id) }}" class="btn btn-success w-100">
+                                        <i class="bi bi-pencil-square me-2"></i>Edit Absen
+                                    </a>
+                                @else
+                                    <a href="{{ route('guru.absensi.create', $item->id) }}" class="btn btn-primary w-100">
+                                        <i class="bi bi-calendar-check me-2"></i>Mulai Absen
+                                    </a>
+                                @endif
+                            @else
+                                <button class="btn btn-secondary w-100" disabled>
+                                    <i class="bi bi-calendar-x me-2"></i>Absen Tidak Tersedia
+                                </button>
+                            @endif
+                            <a href="{{ route('guru.absensi.history', $item->id) }}"
+                                class="btn btn-outline-secondary w-100 mt-2 btn-sm">
+                                <i class="bi bi-clock-history me-1"></i>History Absensi
                             </a>
                         </div>
                     </div>
@@ -56,7 +91,7 @@
                     <tbody>
                         @forelse($recent_attendances as $ra)
                             <tr>
-                                <td class="ps-4">{{ date('d/m/y', strtotime($ra->tanggal)) }}</td>
+                                <td class="ps-4">{{ \Carbon\Carbon::parse($ra->tanggal)->format('d/m/y') }}</td>
                                 <td>
                                     <div class="fw-bold small">{{ $ra->schedule->subject->nama_mapel }}</div>
                                     <div class="text-muted small">

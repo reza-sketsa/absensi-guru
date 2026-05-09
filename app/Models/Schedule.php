@@ -33,6 +33,12 @@ class Schedule extends Model
 
     public function evaluations()
     {
-        return $this->hasMany(Evaluation::class, 'schedule_id');
+        return $this->hasMany(\App\Models\Evaluation::class, 'subject_id', 'subject_id')
+            ->where('classroom_id', $this->classroom_id)
+            ->latest('tanggal');
+    }
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class, 'schedule_id');
     }
 }

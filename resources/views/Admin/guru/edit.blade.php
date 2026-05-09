@@ -4,11 +4,15 @@
 
 @section('content')
     <div class="container pb-5">
-        <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('admin.guru.index') }}" class="btn btn-link text-decoration-none p-0 me-3">
-                <i class="bi bi-arrow-left fs-3"></i>
-            </a>
-            <h3 class="fw-bold mb-0">Edit Data Guru</h3>
+        <div class="card border-0 shadow-sm bg-primary text-white mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div>
+                        <h4 class="fw-bold mb-1">Edit Data Guru</h4>
+                        <p class="mb-0 opacity-75 small">{{ $teacher->nama_guru }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         @if ($errors->any())

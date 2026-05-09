@@ -18,6 +18,16 @@
                         <li>
                             <h6 class="dropdown-header">Menu Profil</h6>
                         </li>
+
+                        @if (Auth::user()->role == 'Admin')
+                            <li>
+                                <a class="dropdown-item" href="{{ route('admin.tahun-ajaran.index') }}">
+                                    <i class="bi bi-calendar-check me-2 text-primary"></i>Tahun Akademik
+                                </a>
+                            </li>
+                            <hr class="dropdown-divider">
+                        @endif
+
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
@@ -56,6 +66,13 @@
                         </a>
                     </li>
                     <li class="nav-item text-center">
+                        <a class="nav-link {{ request()->is('admin/mapel*') ? 'text-primary' : 'text-muted' }}"
+                            href="{{ route('admin.mapel.index') }}">
+                            <i class="bi bi-book fs-4"></i>
+                            <small class="d-block" style="font-size: 10px;">Mapel</small>
+                        </a>
+                    </li>
+                    <li class="nav-item text-center">
                         <a class="nav-link {{ request()->is('admin/kelas*') ? 'text-primary' : 'text-muted' }}"
                             href="{{ route('admin.kelas.index') }}">
                             <i class="bi bi-door-open fs-4"></i>
@@ -64,7 +81,7 @@
                     </li>
                     <li class="nav-item text-center">
                         <a class="nav-link {{ request()->is('admin/jadwal*') ? 'text-primary' : 'text-muted' }}"
-                            href="#">
+                            href="{{ route('admin.jadwal.index') }}">
                             <i class="bi bi-calendar3 fs-4"></i>
                             <small class="d-block" style="font-size: 10px;">Jadwal</small>
                         </a>
@@ -87,7 +104,7 @@
                         </a>
                     </li>
                     <li class="nav-item text-center">
-                        <a class="nav-link {{ request()->is('guru/penilaian*') ? 'text-primary' : 'text-muted' }}"
+                        <a class="nav-link {{ request()->is('guru/penilaian*') || request()->is('guru/evaluations*') ? 'text-primary' : 'text-muted' }}"
                             href="{{ route('guru.penilaian.index') }}">
                             <i class="bi bi-journal-bookmark fs-4"></i>
                             <small class="d-block" style="font-size: 10px;">Penilaian</small>
