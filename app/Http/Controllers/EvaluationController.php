@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EvaluationRequest;
 use App\Models\Evaluation;
 use App\Models\EvaluationDetail;
+use App\Models\Schedule;
 use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
@@ -31,18 +32,18 @@ class EvaluationController extends Controller
     {
         $teacherId = $this->getTeacherId();
 
-        $scheduleIds = \App\Models\Schedule::where('teacher_id', $teacherId)
+        $scheduleIds = Schedule::where('teacher_id', $teacherId)
             ->whereHas('subject')
             ->whereHas('classroom')
             ->selectRaw('MIN(id) as id')
             ->groupBy('teacher_id', 'subject_id', 'classroom_id')
             ->pluck('id');
 
-        $schedules = \App\Models\Schedule::with(['subject', 'classroom'])
+        $schedules = Schedule::with(['subject', 'classroom'])
             ->whereIn('id', $scheduleIds)
             ->get()
             ->map(function ($schedule) use ($teacherId) {
-                $schedule->all_evaluations = \App\Models\Evaluation::where('subject_id', $schedule->subject_id)
+                $schedule->all_evaluations = Evaluation::where('subject_id', $schedule->subject_id)
                     ->where('classroom_id', $schedule->classroom_id)
                     ->where('teacher_id', $teacherId)
                     ->latest()
@@ -124,7 +125,9 @@ class EvaluationController extends Controller
     public function show($id)
     {
         $evaluation = Evaluation::withTrashed()
-            ->with(['details.student', 'subject', 'classroom'])
+            ->with(['details' => fn($q) => $q->with('student')->orderBy(
+                Student::select('nama')->whereColumn('students.id', 'evaluation_details.student_id')->limit(1)
+            ), 'subject', 'classroom'])
             ->findOrFail($id);
 
         return view('guru.nilai.show', compact('evaluation'));

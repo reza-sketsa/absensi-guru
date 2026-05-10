@@ -43,6 +43,7 @@
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">NIP</label>
                                     <input type="text" name="nip" value="{{ old('nip', $teacher->nip) }}"
+                                        maxlength="18" pattern="[0-9]{18}" title="NIP harus 18 digit angka"
                                         class="form-control @error('nip') is-invalid @enderror" required>
                                 </div>
                                 <div class="col-md-6">
@@ -78,7 +79,9 @@
                                 <div class="col-md-12">
                                     <label class="form-label small fw-bold">Nomor Telepon</label>
                                     <input type="text" name="no_telp" class="form-control"
-                                        value="{{ old('no_telp', $teacher->no_telp) }}" required>
+                                        value="{{ old('no_telp', $teacher->no_telp) }}" maxlength="13"
+                                        pattern="[0-9]{10,13}" title="Nomor telepon 10-13 digit angka" required>
+                                    <small class="text-muted">Format: 08xxxxxxxxx</small>
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label small fw-bold">Alamat Lengkap</label>

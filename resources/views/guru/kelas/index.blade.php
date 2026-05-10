@@ -1,8 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container py-4">
-        <h5 class="fw-bold mb-4">Daftar Kelas Anda</h5>
+    <div class="container py-3 mb-5">
+        <div class="card border-0 shadow-sm bg-primary text-white mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">Daftar Kelas</h5>
+                <p class="mb-0 opacity-75 small">{{ $classrooms->count() }} kelas yang Anda ampu</p>
+            </div>
+        </div>
+
         <div class="row">
             @forelse($classrooms as $kelas)
                 <div class="col-md-4 mb-3">

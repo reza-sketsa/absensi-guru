@@ -19,6 +19,10 @@
             </div>
         </div>
 
+        <div class="mb-3">
+            <input type="text" id="searchGuru" class="form-control" placeholder="Cari nama atau NIP guru...">
+        </div>
+
         <div class="card border-0 shadow-sm overflow-hidden"> {{-- Tambah overflow-hidden agar radius card terjaga --}}
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -138,8 +142,8 @@
             </div>
         </div>
     </div>
-@endsection
 
-@push('scripts')
-    @include('components.scripts')
-@endpush
+    @push('scripts')
+        @include('components.scripts')
+    @endpush
+@endsection

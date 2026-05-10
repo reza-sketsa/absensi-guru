@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\AttendanceDetail;
 use App\Models\Classroom;
 use App\Models\Teacher;
+use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schedule;
 
 class DashboardController extends Controller
 {
@@ -32,6 +32,7 @@ class DashboardController extends Controller
             'weekly'   => [Carbon::now()->startOfWeek()->toDateString(), Carbon::now()->endOfWeek()->toDateString()],
             'monthly'  => [Carbon::now()->startOfMonth()->toDateString(), Carbon::now()->endOfMonth()->toDateString()],
             'semester' => $this->getSemesterRange(),
+            'today'    => [Carbon::now()->toDateString(), Carbon::now()->toDateString()],
             default    => [Carbon::now()->startOfWeek()->toDateString(), Carbon::now()->endOfWeek()->toDateString()],
         };
     }
@@ -65,7 +66,7 @@ class DashboardController extends Controller
             'hadir' => $rawStats['Hadir'] ?? 0,
             'izin' => $rawStats['Izin'] ?? 0,
             'sakit' => $rawStats['Sakit'] ?? 0,
-            'Alpa' => $rawStats['Alpa'] ?? 0,
+            'alpa' => $rawStats['Alpa'] ?? 0,
         ];
 
         $lowAttendanceStudents = AttendanceDetail::whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))

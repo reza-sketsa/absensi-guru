@@ -1,6 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
+
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show mx-3 mt-3" role="alert">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     <div class="card border-0 shadow-sm bg-primary text-white mb-4">
         <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-center">
@@ -25,6 +37,10 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="mb-3">
+        <input type="text" id="searchSiswa" class="form-control" placeholder="Cari nama atau NIS siswa...">
     </div>
 
     <div class="card border-0 shadow-sm">
@@ -88,7 +104,9 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">NIS</label>
-                            <input type="text" name="nis" class="form-control" required>
+                            <input type="text" name="nis" class="form-control" maxlength="10" required
+                                pattern=".{1,10}" title="NIS maksimal 10 karakter">
+                            <small class="text-muted">Maksimal 10 karakter</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Jenis Kelamin</label>
@@ -123,11 +141,14 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">No. Telp Siswa</label>
-                            <input type="text" name="no_telp" class="form-control">
+                            <input type="text" name="no_telp" class="form-control" maxlength="13"
+                                pattern="[0-9]{10,13}" title="Nomor telepon 10-13 digit angka">
+                            <small class="text-muted">Format: 08xxxxxxxxx</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">No. Telp Ortu</label>
-                            <input type="text" name="no_telp_ortu" class="form-control">
+                            <input type="text" name="no_telp_ortu" class="form-control" maxlength="13"
+                                pattern="[0-9]{10,13}" title="Nomor telepon 10-13 digit angka">
                         </div>
                     </div>
                 </div>
@@ -155,7 +176,8 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">NIS</label>
                                 <input type="text" name="nis" class="form-control" value="{{ $s->nis }}"
-                                    required>
+                                    maxlength="10" pattern=".{1,10}" title="NIS maksimal 10 karakter" required>
+                                <small class="text-muted">Maksimal 10 karakter</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Jenis Kelamin</label>
@@ -193,11 +215,15 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">No. Telp Siswa</label>
-                                <input type="text" name="no_telp" class="form-control" value="{{ $s->no_telp }}">
+                                <input type="text" name="no_telp" class="form-control" maxlength="13"
+                                    pattern="[0-9]{10,13}" title="Nomor telepon 10-13 digit angka"
+                                    value="{{ $s->no_telp }}">
+                                <small class="text-muted">Format: 08xxxxxxxxx</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">No. Telp Ortu</label>
-                                <input type="text" name="no_telp_ortu" class="form-control"
+                                <input type="text" name="no_telp_ortu" class="form-control" maxlength="13"
+                                    pattern="[0-9]{10,13}" title="Nomor telepon 10-13 digit angka"
                                     value="{{ $s->no_telp_ortu }}">
                             </div>
                         </div>
@@ -237,4 +263,8 @@
             </form>
         </div>
     </div>
+
+    @push('scripts')
+        @include('components.scripts')
+    @endpush
 @endsection

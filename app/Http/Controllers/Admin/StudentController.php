@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Classroom;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 
 class StudentController extends Controller
@@ -22,55 +23,44 @@ class StudentController extends Controller
 
     public function store(Request $request, $kelas_id)
     {
-        $request->validate([
-            'nama'     => 'required|string',
-            'nis'      => 'required|unique:students,nis',
-            'jk'       => 'required|in:L,P',
-            'agama'    => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
+        $validator = Validator::make($request->all(), [
+            'nama'      => 'required|string',
+            'nis'       => 'required|max:10|unique:students,nis',
+            'jk'        => 'required|in:L,P',
+            'agama'     => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
             'tgl_lahir' => 'required|date',
-            'alamat'   => 'required|string',
-            'no_telp'  => 'nullable|string',
+            'alamat'    => 'required|string',
+            'no_telp'      => 'nullable|string',
             'no_telp_ortu' => 'nullable|string',
         ]);
 
-        Student::create([
-            'nama'         => $request->nama,
-            'nis'          => $request->nis,
-            'jk'           => $request->jk,
-            'agama'        => $request->agama,
-            'tgl_lahir'    => $request->tgl_lahir,
-            'alamat'       => $request->alamat,
-            'no_telp'      => $request->no_telp,
-            'no_telp_ortu' => $request->no_telp_ortu,
-            'classroom_id' => $kelas_id,
-        ]);
+        if ($validator->fails()) {
+            return redirect()->back()->with('error', $validator->errors()->first());
+        }
+
+        Student::create(array_merge($validator->validated(), ['classroom_id' => $kelas_id]));
 
         return redirect()->back()->with('success', 'Siswa berhasil ditambahkan.');
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'nama'         => 'required|string',
-            'nis'          => 'required|unique:students,nis,' . $id,
-            'jk'           => 'required|in:L,P',
-            'agama'        => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
-            'tgl_lahir'    => 'required|date',
-            'alamat'       => 'required|string',
+        $validator = Validator::make($request->all(), [
+            'nama'      => 'required|string',
+            'nis'       => 'required|max:10|unique:students,nis,' . $id,
+            'jk'        => 'required|in:L,P',
+            'agama'     => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
+            'tgl_lahir' => 'required|date',
+            'alamat'    => 'required|string',
             'no_telp'      => 'nullable|string',
             'no_telp_ortu' => 'nullable|string',
         ]);
 
-        Student::findOrFail($id)->update([
-            'nama'         => $request->nama,
-            'nis'          => $request->nis,
-            'jk'           => $request->jk,
-            'agama'        => $request->agama,
-            'tgl_lahir'    => $request->tgl_lahir,
-            'alamat'       => $request->alamat,
-            'no_telp'      => $request->no_telp,
-            'no_telp_ortu' => $request->no_telp_ortu,
-        ]);
+        if ($validator->fails()) {
+            return redirect()->back()->with('error', $validator->errors()->first());
+        }
+
+        \App\Models\Student::findOrFail($id)->update($validator->validated());
 
         return redirect()->back()->with('success', 'Data siswa berhasil diperbarui.');
     }

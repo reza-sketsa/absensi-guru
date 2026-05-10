@@ -17,6 +17,8 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
             <h5 class="fw-bold mb-0">Dashboard</h5>
             <div class="btn-group btn-group-sm shadow-sm flex-wrap">
+                <a href="?filter=today" class="btn btn-outline-primary {{ $filter == 'today' ? 'active' : '' }}">Hari
+                    ini</a>
                 <a href="?filter=weekly"
                     class="btn btn-outline-primary {{ $filter == 'weekly' ? 'active' : '' }}">Mingguan</a>
                 <a href="?filter=monthly"
@@ -31,7 +33,7 @@
             <div class="card-body">
                 <h6 class="fw-bold mb-3">Statistik Kehadiran Siswa</h6>
                 <div style="position: relative; height: 250px;">
-                    <canvas id="absensiChart"></canvas>
+                    <canvas id="absensiChart" data-stats='@json($stats)'></canvas>
                 </div>
             </div>
         </div>
@@ -116,48 +118,6 @@
     </div>
 
     @push('scripts')
-        <script>
-            const chartData = @json($stats);
-            const total = chartData.hadir + chartData.izin + chartData.sakit + chartData.alpa;
-
-            document.addEventListener('DOMContentLoaded', function() {
-                const chartCanvas = document.getElementById('absensiChart');
-
-                if (chartCanvas && total > 0) {
-                    new Chart(chartCanvas, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Hadir', 'Izin', 'Sakit', 'Alpa'],
-                            datasets: [{
-                                data: [chartData.hadir, chartData.izin, chartData.sakit, chartData
-                                    .alpa
-                                ],
-                                backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#dc3545'],
-                                borderWidth: 2,
-                                hoverOffset: 8
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        padding: 20,
-                                        usePointStyle: true
-                                    }
-                                }
-                            },
-                            cutout: '70%'
-                        }
-                    });
-                } else if (chartCanvas) {
-                    chartCanvas.parentElement.innerHTML =
-                        '<p class="text-muted text-center py-5">Belum ada data kehadiran untuk periode ini.</p>';
-                }
-            });
-        </script>
         @include('components.scripts')
     @endpush
 @endsection

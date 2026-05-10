@@ -114,7 +114,7 @@
                         <a class="nav-link {{ request()->is('guru/kelas*') ? 'text-primary' : 'text-muted' }}"
                             href="{{ route('guru.kelas.index') }}">
                             <i class="bi bi-people fs-4"></i>
-                            <small class="d-block" style="font-size: 10px;">Siswa</small>
+                            <small class="d-block" style="font-size: 10px;">Kelas</small>
                         </a>
                     </li>
                 @endif
