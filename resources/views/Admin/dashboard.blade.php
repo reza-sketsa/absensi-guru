@@ -5,11 +5,12 @@
         {{-- Header & Filter --}}
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
             <div>
-                <h3 class="fw-bold mb-1">Kehadiran Siswa</h3>
-                <p class="text-muted small mb-0">Laporan periode: <span
-                        class="badge bg-primary-subtle text-primary fw-semibold">{{ ucfirst($filter) }}</span></p>
+                <h3 class="fw-bold mb-1">Dashboard Admin</h3>
+                <p class="text-muted small mb-0">
+                    {{ $totalGuruAktif }} dari {{ $totalGuru }} guru aktif mengabsen
+                    <span class="badge bg-primary-subtle text-primary fw-semibold ms-1">{{ ucfirst($filter) }}</span>
+                </p>
             </div>
-
             <div class="btn-group shadow-sm flex-wrap">
                 <a href="?filter=today" class="btn btn-sm btn-outline-primary {{ $filter == 'today' ? 'active' : '' }}">Hari
                     Ini</a>
@@ -22,134 +23,101 @@
             </div>
         </div>
 
-        <div class="row g-4 mb-4">
-            {{-- Statistik Utama --}}
-            <div class="col-lg-7">
-                <div class="row g-3">
-                    {{-- Hadir --}}
-                    <div class="col-6">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body p-3 p-md-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <small class="text-muted d-block mb-1 fw-medium">Hadir</small>
-                                        <h2 class="fw-bold text-success mb-0">{{ $hadir ?? 0 }}</h2>
-                                    </div>
-                                    <div class="bg-success-subtle p-2 rounded-3">
-                                        <i class="bi bi-people text-success fs-4"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {{-- Izin --}}
-                    <div class="col-6">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body p-3 p-md-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <small class="text-muted d-block mb-1 fw-medium">Izin</small>
-                                        <h2 class="fw-bold text-info mb-0">{{ $izin ?? 0 }}</h2>
-                                    </div>
-                                    <div class="bg-info-subtle p-2 rounded-3">
-                                        <i class="bi bi-envelope-paper text-info fs-4"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {{-- Sakit --}}
-                    <div class="col-6">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body p-3 p-md-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <small class="text-muted d-block mb-1 fw-medium">Sakit</small>
-                                        <h2 class="fw-bold text-warning mb-0">{{ $sakit ?? 0 }}</h2>
-                                    </div>
-                                    <div class="bg-warning-subtle p-2 rounded-3">
-                                        <i class="bi bi-bandaid text-warning fs-4"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {{-- Alpha --}}
-                    <div class="col-6">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body p-3 p-md-4">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <small class="text-muted d-block mb-1 fw-medium">Alpa</small>
-                                        <h2 class="fw-bold text-danger mb-0">{{ $alpa ?? 0 }}</h2>
-                                    </div>
-                                    <div class="bg-danger-subtle p-2 rounded-3">
-                                        <i class="bi bi-x-circle text-danger fs-4"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        {{-- Ringkasan --}}
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <small class="text-muted d-block mb-1 fw-medium">Total Guru</small>
+                        <h2 class="fw-bold text-dark mb-0">{{ $totalGuru }}</h2>
                     </div>
                 </div>
             </div>
-
-            {{-- Chart --}}
-            <div class="col-lg-5">
+            <div class="col-6 col-md-3">
                 <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body d-flex flex-column align-items-center justify-content-center p-4">
-                        <h6 class="fw-bold mb-4 text-center">Proporsi Kehadiran</h6>
-                        <div style="position: relative; height: 200px; width: 100%;">
-                            <canvas id="schoolAttendanceChart"></canvas>
-                        </div>
+                    <div class="card-body p-3">
+                        <small class="text-muted d-block mb-1 fw-medium">Guru Aktif</small>
+                        <h2 class="fw-bold text-success mb-0">{{ $totalGuruAktif }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <small class="text-muted d-block mb-1 fw-medium">Belum Aktif</small>
+                        <h2 class="fw-bold text-danger mb-0">{{ $totalGuru - $totalGuruAktif }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <small class="text-muted d-block mb-1 fw-medium">Belum Absen Hari Ini</small>
+                        <h2 class="fw-bold text-warning mb-0">{{ $jadwalBelumAbsen->count() }}</h2>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Tabel Rekap --}}
-        <div class="card border-0 shadow-sm overflow-hidden">
+        {{-- Chart Trend Harian --}}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Trend Guru Mengabsen per Hari</h6>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {{-- Keaktifan Guru --}}
+        <div class="card border-0 shadow-sm overflow-hidden mb-4">
             <div class="card-header bg-white py-3 border-0">
-                <h6 class="fw-bold mb-0"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Rekap Kehadiran Per Kelas</h6>
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-person-check text-primary me-2"></i>Keaktifan Guru Mengabsen
+                </h6>
             </div>
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-center">
+                <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light text-muted small fw-bold">
                         <tr>
-                            <th class="text-start ps-4 py-3">NAMA KELAS</th>
-                            <th>HADIR</th>
-                            <th>IZIN</th>
-                            <th>SAKIT</th>
-                            <th>ALPA</th>
-                            <th class="pe-4">PERSENTASE</th>
+                            <th class="ps-4 py-3">NAMA GURU</th>
+                            <th class="text-center py-3">TOTAL JADWAL</th>
+                            <th class="text-center py-3">SUDAH ABSEN</th>
+                            <th class="pe-4 py-3">KEAKTIFAN</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($rekapKelas as $rk)
+                        @forelse($keaktifanGuru as $guru)
+                            @php
+                                $color =
+                                    $guru->persentase >= 80
+                                        ? 'bg-success'
+                                        : ($guru->persentase >= 50
+                                            ? 'bg-warning'
+                                            : 'bg-danger');
+                            @endphp
                             <tr>
-                                <td class="text-start ps-4 fw-bold text-dark">{{ $rk->nama_kelas }}</td>
-                                <td><span class="badge bg-success-subtle text-success">{{ $rk->hadir }}</span></td>
-                                <td>{{ $rk->izin }}</td>
-                                <td>{{ $rk->sakit }}</td>
-                                <td><span class="badge bg-danger-subtle text-danger">{{ $rk->alpa }}</span></td>
+                                <td class="ps-4 fw-bold">{{ $guru->nama_guru }}</td>
+                                <td class="text-center text-muted">{{ $guru->total_jadwal }}</td>
+                                <td class="text-center">
+                                    <span
+                                        class="badge {{ $guru->total_absen > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }}">
+                                        {{ $guru->total_absen }}
+                                    </span>
+                                </td>
                                 <td class="pe-4">
-                                    @php
-                                        $total = $rk->hadir + $rk->izin + $rk->sakit + $rk->alpa;
-                                        $persen = $total > 0 ? round(($rk->hadir / $total) * 100) : 0;
-                                        $color =
-                                            $persen >= 80 ? 'bg-success' : ($persen >= 50 ? 'bg-warning' : 'bg-danger');
-                                    @endphp
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        <div class="progress flex-grow-1" style="height: 6px; max-width: 100px;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px;">
                                             <div class="progress-bar {{ $color }}"
-                                                style="width: {{ $persen }}%"></div>
+                                                style="width: {{ $guru->persentase }}%"></div>
                                         </div>
-                                        <small class="fw-bold">{{ $persen }}%</small>
+                                        <small class="fw-bold text-nowrap">{{ $guru->persentase }}%</small>
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="py-5 text-muted">Data kelas belum tersedia.</td>
+                                <td colspan="4" class="text-center py-4 text-muted">Belum ada data.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -157,7 +125,8 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm overflow-hidden mt-4">
+        {{-- Jadwal Belum Diabsen Hari Ini --}}
+        <div class="card border-0 shadow-sm overflow-hidden">
             <div class="card-header bg-white py-3 border-0">
                 <h6 class="fw-bold mb-0">
                     <i class="bi bi-exclamation-triangle text-warning me-2"></i>
@@ -204,47 +173,55 @@
 @push('scripts')
     @include('components.scripts')
     <script>
-        // Logika Chart
-        const ctx = document.getElementById('schoolAttendanceChart');
-        const total = {{ ($hadir ?? 0) + ($izin ?? 0) + ($sakit ?? 0) + ($alpa ?? 0) }};
+        document.addEventListener('DOMContentLoaded', function() {
+            const labels = @json($chartLabels);
+            const data = @json($chartData);
+            const ctx = document.getElementById('trendChart');
 
-        if (ctx && total > 0) {
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Hadir', 'Izin', 'Sakit', 'Alpa'],
-                    datasets: [{
-                        data: [
-                            {{ $hadir ?? 0 }},
-                            {{ $izin ?? 0 }},
-                            {{ $sakit ?? 0 }},
-                            {{ $alpa ?? 0 }}
-                        ],
-                        backgroundColor: ['#198754', '#0dcaf0', '#ffc107', '#dc3545'],
-                        hoverOffset: 4,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    cutout: '75%',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                                font: {
-                                    size: 12
+            if (ctx && data.length > 0) {
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Guru yang Absen',
+                            data: data,
+                            backgroundColor: 'rgba(13, 110, 253, 0.15)',
+                            borderColor: 'rgba(13, 110, 253, 0.8)',
+                            borderWidth: 2,
+                            borderRadius: 6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                },
+                                grid: {
+                                    color: 'rgba(0,0,0,0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
                                 }
                             }
                         }
                     }
-                }
-            });
-        } else if (ctx) {
-            ctx.parentElement.innerHTML = '<p class="text-muted text-center">Belum ada data kehadiran.</p>';
-        }
+                });
+            } else if (ctx) {
+                ctx.parentElement.innerHTML =
+                    '<p class="text-muted text-center py-5">Belum ada data untuk periode ini.</p>';
+            }
+        });
     </script>
 @endpush
