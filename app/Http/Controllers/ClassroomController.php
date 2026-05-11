@@ -13,8 +13,8 @@ class ClassroomController extends Controller
     public function index()
     {
         $classroom = Classroom::with('teacher')
-            ->orderBy('tingkat', 'asc')
-            ->orderBy('paralel', 'asc')
+            // ->orderBy('tingkat', 'asc')
+            // ->orderBy('paralel', 'asc')
             ->get();
 
         return response()->json([

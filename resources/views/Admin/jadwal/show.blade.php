@@ -21,9 +21,10 @@
                         <a href="{{ route('admin.jadwal.index') }}" class="btn btn-outline-light border-0 btn-sm">
                             <i class="bi bi-arrow-left fs-4"></i>
                         </a>
-
-                        <h4 class="fw-bold mb-1">{{ $classroom->tingkat }} {{ $classroom->paralel }}</h4>
-                        <p class="mb-0 opacity-75 small">{{ count($schedules) }} jadwal — Hari {{ $hari }}</p>
+                        <div>
+                            <h4 class="fw-bold mb-0">{{ $classroom->tingkat }} {{ $classroom->paralel }}</h4>
+                            <p class="mb-0 opacity-75 small">{{ count($schedules) }} jadwal — Hari {{ $hari }}</p>
+                        </div>
                     </div>
                     <button class="btn btn-light btn-sm shadow-sm" data-bs-toggle="modal"
                         data-bs-target="#modalTambahJadwal">

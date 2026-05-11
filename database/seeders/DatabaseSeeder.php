@@ -338,42 +338,47 @@ class DatabaseSeeder extends Seeder
         // 8. SCHEDULES
         // =========================
         $hariList     = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        $jamList      = [
+
+        $jamList = [
             ['jam_mulai' => '07:30', 'jam_habis' => '09:00'],
             ['jam_mulai' => '09:00', 'jam_habis' => '10:30'],
-            ['jam_mulai' => '10:30', 'jam_habis' => '12.00'],
-            ['jam_mulai' => '13.00', 'jam_habis' => '14.00'],
+            ['jam_mulai' => '10:30', 'jam_habis' => '12:00'],
+            ['jam_mulai' => '13:00', 'jam_habis' => '14:00'],
         ];
+
         $scheduleIds  = [];
         $teacherIndex = 0;
         $subjectIndex = 0;
 
         foreach ($classroomIds as $classroomId) {
             $scheduleIds[$classroomId] = [];
-            foreach ($hariList as $hariIdx => $hari) {
-                $jam      = $jamList[$hariIdx % count($jamList)];
-                $existing = DB::table('schedules')
-                    ->where('classroom_id', $classroomId)
-                    ->where('hari', $hari)
-                    ->where('jam_mulai', $jam['jam_mulai'])
-                    ->first();
 
-                $scheduleIds[$classroomId][] = $existing
-                    ? $existing->id
-                    : DB::table('schedules')->insertGetId([
-                        'academic_year_id' => $academicYearId,
-                        'teacher_id'       => $teacherIds[$teacherIndex % count($teacherIds)],
-                        'subject_id'       => $subjectIds[$subjectIndex % count($subjectIds)],
-                        'classroom_id'     => $classroomId,
-                        'hari'             => $hari,
-                        'jam_mulai'        => $jam['jam_mulai'],
-                        'jam_habis'        => $jam['jam_habis'],
-                        'created_at'       => now(),
-                        'updated_at'       => now(),
-                    ]);
+            foreach ($hariList as $hari) {
+                foreach ($jamList as $jam) {
 
-                $teacherIndex++;
-                $subjectIndex++;
+                    $existing = DB::table('schedules')
+                        ->where('classroom_id', $classroomId)
+                        ->where('hari', $hari)
+                        ->where('jam_mulai', $jam['jam_mulai'])
+                        ->first();
+
+                    $scheduleIds[$classroomId][] = $existing
+                        ? $existing->id
+                        : DB::table('schedules')->insertGetId([
+                            'academic_year_id' => $academicYearId,
+                            'teacher_id'       => $teacherIds[$teacherIndex % count($teacherIds)],
+                            'subject_id'       => $subjectIds[$subjectIndex % count($subjectIds)],
+                            'classroom_id'     => $classroomId,
+                            'hari'             => $hari,
+                            'jam_mulai'        => $jam['jam_mulai'],
+                            'jam_habis'        => $jam['jam_habis'],
+                            'created_at'       => now(),
+                            'updated_at'       => now(),
+                        ]);
+
+                    $teacherIndex++;
+                    $subjectIndex++;
+                }
             }
         }
 

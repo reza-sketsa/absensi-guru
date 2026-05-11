@@ -29,10 +29,10 @@ class DashboardController extends Controller
     private function getDateRange(string $filter): array
     {
         return match ($filter) {
+            'today'    => [Carbon::now()->toDateString(), Carbon::now()->toDateString()],
             'weekly'   => [Carbon::now()->startOfWeek()->toDateString(), Carbon::now()->endOfWeek()->toDateString()],
             'monthly'  => [Carbon::now()->startOfMonth()->toDateString(), Carbon::now()->endOfMonth()->toDateString()],
             'semester' => $this->getSemesterRange(),
-            'today'    => [Carbon::now()->toDateString(), Carbon::now()->toDateString()],
             default    => [Carbon::now()->startOfWeek()->toDateString(), Carbon::now()->endOfWeek()->toDateString()],
         };
     }
@@ -146,6 +146,8 @@ class DashboardController extends Controller
 
         $classrooms = Classroom::where('walas_id', $teacherId)
             ->orWhereHas('schedules', fn($q) => $q->where('teacher_id', $teacherId))
+            ->orderBy('tingkat', 'asc')
+            ->orderBy('paralel', 'asc')
             ->withCount('students')
             ->get();
 
