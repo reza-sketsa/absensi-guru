@@ -3,14 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
+use App\Models\AcademicYear;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
     public function index(Request $request)
     {
+
         $filter = $request->get('filter', 'weekly');
+        $selectedYearId = $request->get('academic_year_id');
+
+        $allYears = AcademicYear::orderBy('id', 'desc')->get();
+        $activeYear = $selectedYearId
+            ? AcademicYear::find($selectedYearId)
+            : AcademicYear::where('is_active', true)->first();
 
         if ($filter == 'weekly') {
             $startDate = now()->startOfWeek()->toDateString();
@@ -31,11 +39,23 @@ class AdminController extends Controller
             $endDate   = now()->toDateString();
         }
 
+        $today = now()->toDateString();
+        $daftarHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $hariIni = $daftarHari[now()->dayOfWeek];
+
         $keaktifanGuru = DB::table('teachers')
-            ->leftJoin('schedules', 'schedules.teacher_id', '=', 'teachers.id')
-            ->leftJoin('attendances', function ($join) use ($startDate, $endDate) {
+            ->leftJoin('schedules', function ($join) use ($activeYear) {
+                $join->on('schedules.teacher_id', '=', 'teachers.id');
+                if ($activeYear) {
+                    $join->where('schedules.academic_year_id', $activeYear->id); // tambah
+                }
+            })
+            ->leftJoin('attendances', function ($join) use ($startDate, $endDate, $activeYear) {
                 $join->on('attendances.schedule_id', '=', 'schedules.id')
                     ->whereBetween('attendances.tanggal', [$startDate, $endDate]);
+                if ($activeYear) {
+                    $join->where('attendances.academic_year_id', $activeYear->id); // tambah
+                }
             })
             ->selectRaw("
             teachers.id,
@@ -56,10 +76,6 @@ class AdminController extends Controller
         $totalGuruAktif = $keaktifanGuru->where('total_absen', '>', 0)->count();
         $totalGuru      = $keaktifanGuru->count();
 
-        $today    = now()->toDateString();
-        $daftarHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        $hariIni  = $daftarHari[now()->dayOfWeek];
-
         $jadwalBelumAbsen = DB::table('schedules')
             ->join('teachers', 'teachers.id', '=', 'schedules.teacher_id')
             ->join('subjects', 'subjects.id', '=', 'schedules.subject_id')
@@ -70,6 +86,7 @@ class AdminController extends Controller
             })
             ->whereNull('attendances.id')
             ->where('schedules.hari', $hariIni)
+            ->when($activeYear, fn($q) => $q->where('schedules.academic_year_id', $activeYear->id)) // tambah
             ->select(
                 'schedules.id',
                 'teachers.nama_guru',
@@ -82,17 +99,18 @@ class AdminController extends Controller
             ->orderBy('schedules.jam_mulai')
             ->get();
 
-        // Chart Harian
         $trendHarian = DB::table('attendances')
             ->join('schedules', 'schedules.id', '=', 'attendances.schedule_id')
             ->whereBetween('attendances.tanggal', [$startDate, $endDate])
+            ->when($activeYear, fn($q) => $q->where('attendances.academic_year_id', $activeYear->id)) // tambah
             ->selectRaw("
-        DATE(attendances.tanggal) as tanggal,
-        COUNT(DISTINCT schedules.teacher_id) as total_guru
-    ")
+            DATE(attendances.tanggal) as tanggal,
+            COUNT(DISTINCT schedules.teacher_id) as total_guru
+        ")
             ->groupBy('attendances.tanggal')
             ->orderBy('attendances.tanggal')
             ->get();
+
 
         $chartLabels = $trendHarian->pluck('tanggal')->map(fn($t) => \Carbon\Carbon::parse($t)->translatedFormat('d M'))->values();
         $chartData   = $trendHarian->pluck('total_guru')->values();
@@ -104,7 +122,9 @@ class AdminController extends Controller
             'totalGuru',
             'jadwalBelumAbsen',
             'chartLabels',
-            'chartData'
+            'chartData',
+            'allYears',
+            'activeYear',
         ));
     }
 }

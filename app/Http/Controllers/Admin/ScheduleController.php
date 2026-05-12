@@ -35,8 +35,14 @@ class ScheduleController extends Controller
         ];
 
         $hari = request('hari', $hariMap[now()->dayOfWeek]);
-
         $classroom = DB::table('classrooms')->where('id', $id)->first();
+
+        $activeYear = DB::table('academic_years')->where('is_active', 1)->first();
+
+        if (!$activeYear) {
+            return redirect()->route('admin.jadwal.index')
+                ->with('error', 'Tidak ada tahun ajaran aktif.');
+        }
 
         $schedules = DB::table('schedules')
             ->join('classrooms', 'schedules.classroom_id', '=', 'classrooms.id')
@@ -51,6 +57,7 @@ class ScheduleController extends Controller
             )
             ->where('schedules.classroom_id', $id)
             ->where('schedules.hari', $hari)
+            ->where('schedules.academic_year_id', $activeYear->id)
             ->orderBy('jam_mulai', 'asc')
             ->get();
 
@@ -89,6 +96,7 @@ class ScheduleController extends Controller
             'jam_mulai'        => $validated['jam_mulai'],
             'jam_habis'        => $validated['jam_habis'],
             'academic_year_id' => $activeYear->id,
+            'semester'         => $activeYear->semester,
             'created_at'       => now(),
             'updated_at'       => now(),
         ]);

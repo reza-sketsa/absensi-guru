@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EvaluationRequest;
+use App\Models\AcademicYear;
 use App\Models\Evaluation;
 use App\Models\EvaluationDetail;
 use App\Models\Schedule;
@@ -32,7 +33,13 @@ class EvaluationController extends Controller
     {
         $teacherId = $this->getTeacherId();
 
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        if (!$activeYear) {
+            return redirect()->back()->with('error', 'Tidak ada tahun ajaran aktif.');
+        }
+
         $scheduleIds = Schedule::where('teacher_id', $teacherId)
+            ->where('academic_year_id', $activeYear->id) // tambah
             ->whereHas('subject')
             ->whereHas('classroom')
             ->selectRaw('MIN(id) as id')
@@ -42,10 +49,11 @@ class EvaluationController extends Controller
         $schedules = Schedule::with(['subject', 'classroom'])
             ->whereIn('id', $scheduleIds)
             ->get()
-            ->map(function ($schedule) use ($teacherId) {
+            ->map(function ($schedule) use ($teacherId, $activeYear) {
                 $schedule->all_evaluations = Evaluation::where('subject_id', $schedule->subject_id)
                     ->where('classroom_id', $schedule->classroom_id)
                     ->where('teacher_id', $teacherId)
+                    ->where('academic_year_id', $activeYear->id) // tambah
                     ->latest()
                     ->take(5)
                     ->get();
@@ -81,13 +89,13 @@ class EvaluationController extends Controller
     {
         $teacherId  = $this->getTeacherId();
         $validated  = $request->validated();
-        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $activeYear = AcademicYear::where('is_active', true)->first();
 
         if (!$activeYear) {
             return back()->with('error', 'Tahun ajaran aktif belum diatur oleh admin.');
         }
 
-        $schedule = \App\Models\Schedule::findOrFail($validated['schedule_id']);
+        $schedule = Schedule::findOrFail($validated['schedule_id']);
 
         $evaluation = Evaluation::updateOrCreate(
             [
@@ -101,6 +109,7 @@ class EvaluationController extends Controller
             [
                 'schedule_id' => $validated['schedule_id'],
                 'tanggal'     => $validated['tanggal'],
+                'semester'    => $activeYear->semester,
             ]
         );
 
@@ -199,27 +208,15 @@ class EvaluationController extends Controller
 
     public function trash()
     {
+        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+
         $trashedEvaluations = Evaluation::onlyTrashed()
             ->with(['subject', 'classroom', 'details'])
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id)) // tambah
             ->latest('deleted_at')
             ->get();
 
         return view('guru.nilai.trash', compact('trashedEvaluations'));
-    }
-
-    public function restore($id)
-    {
-        try {
-            $evaluation = Evaluation::withTrashed()->findOrFail($id);
-
-            $evaluation->restore();
-
-            $evaluation->details()->restore();
-
-            return back()->with('success', 'Data penilaian berhasil dikembalikan!');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Gagal mengembalikan data: ' . $e->getMessage());
-        }
     }
 
     public function forceDeleteEvaluation($id)

@@ -24,8 +24,6 @@
             </div>
         </div>
 
-        <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>Riwayat Absensi</h5>
-
         @forelse($histories as $history)
             <a href="{{ route('guru.absensi.history.detail', [$schedule->id, $history->id]) }}"
                 class="card mb-2 border-0 shadow-sm text-decoration-none text-dark">

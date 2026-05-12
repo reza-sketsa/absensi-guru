@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicYear;
 use App\Models\AttendanceDetail;
 use App\Models\Classroom;
-use App\Models\Teacher;
 use App\Models\Schedule;
+use App\Models\Teacher;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,11 +52,23 @@ class DashboardController extends Controller
     {
         $teacherId = $this->getTeacherId();
         $filter    = $request->get('filter', 'weekly');
-
         [$startDate, $endDate] = $this->getDateRange($filter);
 
+        $allYears   = AcademicYear::orderBy('id', 'desc')->get();
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        $selectedYearId = $request->get('academic_year_id');
+        $selectedYear   = $selectedYearId
+            ? AcademicYear::find($selectedYearId)
+            : $activeYear;
+
+        $isActiveYear = $selectedYear && $activeYear && $selectedYear->id === $activeYear->id;
+
         $query = AttendanceDetail::whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))
-            ->whereHas('attendance', fn($q) => $q->whereBetween('tanggal', [$startDate, $endDate]));
+            ->whereHas('attendance', function ($q) use ($startDate, $endDate, $selectedYear) {
+                $q->whereBetween('tanggal', [$startDate, $endDate]);
+                if ($selectedYear) $q->where('academic_year_id', $selectedYear->id);
+            });
 
         $rawStats = $query->select('status', DB::raw('count(*) as total'))
             ->groupBy('status')
@@ -64,14 +77,17 @@ class DashboardController extends Controller
 
         $stats = [
             'hadir' => $rawStats['Hadir'] ?? 0,
-            'izin' => $rawStats['Izin'] ?? 0,
+            'izin'  => $rawStats['Izin'] ?? 0,
             'sakit' => $rawStats['Sakit'] ?? 0,
-            'alpa' => $rawStats['Alpa'] ?? 0,
+            'alpa'  => $rawStats['Alpa'] ?? 0,
         ];
 
         $lowAttendanceStudents = AttendanceDetail::whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))
             ->whereIn('status', ['Alpa', 'Sakit', 'Izin'])
-            ->whereHas('attendance', fn($q) => $q->whereBetween('tanggal', [$startDate, $endDate]))
+            ->whereHas('attendance', function ($q) use ($startDate, $endDate, $selectedYear) {
+                $q->whereBetween('tanggal', [$startDate, $endDate]);
+                if ($selectedYear) $q->where('academic_year_id', $selectedYear->id);
+            })
             ->select(
                 'student_id',
                 DB::raw('count(*) as total_tidak_hadir'),
@@ -90,6 +106,7 @@ class DashboardController extends Controller
             ->join('attendance_details', 'attendance_details.attendance_id', '=', 'attendances.id')
             ->where('schedules.teacher_id', $teacherId)
             ->whereBetween('attendances.tanggal', [$startDate, $endDate])
+            ->when($selectedYear, fn($q) => $q->where('attendances.academic_year_id', $selectedYear->id))
             ->selectRaw("
             classrooms.id as classroom_id,
             CONCAT(classrooms.tingkat, '-', classrooms.paralel) as nama_kelas,
@@ -101,7 +118,15 @@ class DashboardController extends Controller
             ->groupBy('classrooms.id', 'classrooms.tingkat', 'classrooms.paralel')
             ->get();
 
-        return view('guru.dashboard', compact('stats', 'filter', 'lowAttendanceStudents', 'rekapKelas'));
+        return view('guru.dashboard', compact(
+            'stats',
+            'filter',
+            'lowAttendanceStudents',
+            'rekapKelas',
+            'allYears',
+            'selectedYear',
+            'isActiveYear'
+        ));
     }
 
     public function rekapKelas(Request $request, $classroom_id)
@@ -111,13 +136,17 @@ class DashboardController extends Controller
 
         [$startDate, $endDate] = $this->getDateRange($filter);
 
-        $classroom = \App\Models\Classroom::findOrFail($classroom_id);
+        $classroom  = Classroom::findOrFail($classroom_id);
+        $activeYear = AcademicYear::where('is_active', true)->first();
 
         $rekapSiswa = DB::table('students')
             ->leftJoin('attendance_details', 'attendance_details.student_id', '=', 'students.id')
-            ->leftJoin('attendances', function ($join) use ($startDate, $endDate) {
+            ->leftJoin('attendances', function ($join) use ($startDate, $endDate, $activeYear) {
                 $join->on('attendances.id', '=', 'attendance_details.attendance_id')
                     ->whereBetween('attendances.tanggal', [$startDate, $endDate]);
+                if ($activeYear) {
+                    $join->where('attendances.academic_year_id', $activeYear->id);
+                }
             })
             ->leftJoin('schedules', function ($join) use ($teacherId) {
                 $join->on('schedules.id', '=', 'attendances.schedule_id')

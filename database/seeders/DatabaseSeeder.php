@@ -42,6 +42,8 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now(),
             ]);
 
+        $academicYearSemester = $existing ? $existing->semester : 'Genap';
+
         // =========================
         // 3. ADMIN USER
         // =========================
@@ -366,6 +368,7 @@ class DatabaseSeeder extends Seeder
                         ? $existing->id
                         : DB::table('schedules')->insertGetId([
                             'academic_year_id' => $academicYearId,
+                            'semester' => $academicYearSemester,
                             'teacher_id'       => $teacherIds[$teacherIndex % count($teacherIds)],
                             'subject_id'       => $subjectIds[$subjectIndex % count($subjectIds)],
                             'classroom_id'     => $classroomId,
@@ -405,6 +408,7 @@ class DatabaseSeeder extends Seeder
                         'schedule_id'      => $scheduleId,
                         'tanggal'          => $tanggal,
                         'academic_year_id' => $academicYearId,
+                        'semester' => $academicYearSemester,
                         'created_at'       => now(),
                         'updated_at'       => now(),
                     ]);
@@ -453,6 +457,7 @@ class DatabaseSeeder extends Seeder
                             'classroom_id'     => $classroomId,
                             'teacher_id'       => $schedule->teacher_id,
                             'academic_year_id' => $academicYearId,
+                            'semester' => $academicYearSemester,
                             'jenis'            => $jenis,
                             'nama_penilaian'   => $namaEval,
                             'tanggal'          => Carbon::now()->subDays(rand(1, 90))->format('Y-m-d'),

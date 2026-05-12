@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AttendanceRequest;
+use App\Models\AcademicYear;
 use App\Models\Attendance;
 use App\Models\AttendanceDetail;
 use App\Models\Schedule;
@@ -37,11 +38,17 @@ class AttendanceController extends Controller
         $daftarHari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         $selectedDay = $request->get('hari', $daftarHari[date('w')]);
         $isToday = $selectedDay === $daftarHari[date('w')];
-
         $today = now()->toDateString();
+
+        $activeYear = AcademicYear::where('is_active', true)->first(); // pindah ke atas
+        if (!$activeYear) {
+            return redirect()->back()->with('error', 'Tidak ada tahun ajaran aktif.');
+        }
+
         $schedules = Schedule::with(['subject', 'classroom'])
             ->where('teacher_id', $teacherId)
             ->where('hari', $selectedDay)
+            ->where('academic_year_id', $activeYear->id)
             ->orderBy('jam_mulai', 'asc')
             ->get()
             ->map(function ($item) use ($today) {
@@ -59,6 +66,7 @@ class AttendanceController extends Controller
                 'details as a' => fn($q) => $q->where('status', 'Alpa'),
             ])
             ->whereHas('schedule', fn($q) => $q->where('teacher_id', $teacherId))
+            ->where('academic_year_id', $activeYear->id)
             ->latest('tanggal')
             ->take(5)
             ->get();
@@ -81,7 +89,17 @@ class AttendanceController extends Controller
         $teacherId = $this->getTeacherId();
         $student   = Student::with('classroom')->findOrFail($id);
 
+        $allYears = AcademicYear::orderBy('id', 'desc')->get();
+
+        $selectedYearId = request('academic_year_id');
+        $selectedYear = $selectedYearId
+            ? AcademicYear::find($selectedYearId)
+            : AcademicYear::where('is_active', true)->first();
+
         $attendanceHistory = AttendanceDetail::where('student_id', $id)
+            ->whereHas('attendance', function ($q) use ($selectedYear) {
+                if ($selectedYear) $q->where('academic_year_id', $selectedYear->id);
+            })
             ->whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))
             ->with('attendance')
             ->orderByDesc(
@@ -99,7 +117,7 @@ class AttendanceController extends Controller
             'Alpa'  => $attendanceHistory->where('status', 'Alpa')->count(),
         ];
 
-        return view('guru.absensi.student-detail', compact('student', 'attendanceHistory', 'summary'));
+        return view('guru.absensi.student-detail', compact('student', 'attendanceHistory', 'summary', 'allYears', 'selectedYear'));
     }
 
     public function editAbsensi($schedule_id)
@@ -157,7 +175,7 @@ class AttendanceController extends Controller
     {
         $validated = $request->validated();
 
-        $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+        $activeYear = AcademicYear::where('is_active', true)->first();
 
         if (!$activeYear) {
             return redirect()->back()->with('error', 'Tidak ada tahun ajaran aktif. Hubungi admin.');
@@ -171,6 +189,7 @@ class AttendanceController extends Controller
                 ],
                 [
                     'academic_year_id' => $activeYear->id,
+                    'semester'         => $activeYear->semester,
                     'updated_at'       => now()
                 ]
             );
@@ -233,7 +252,15 @@ class AttendanceController extends Controller
             ? null
             : abort(403, 'Anda tidak memiliki akses ke jadwal ini');
 
+        $allYears = AcademicYear::orderBy('id', 'desc')->get();
+
+        $selectedYearId = request('academic_year_id');
+        $selectedYear = $selectedYearId
+            ? AcademicYear::find($selectedYearId)
+            : AcademicYear::where('is_active', true)->first();
+
         $histories = Attendance::where('schedule_id', $schedule_id)
+            ->when($selectedYear, fn($q) => $q->where('academic_year_id', $selectedYear->id))
             ->withCount([
                 'details as h' => fn($q) => $q->where('status', 'Hadir'),
                 'details as i' => fn($q) => $q->where('status', 'Izin'),
@@ -243,7 +270,7 @@ class AttendanceController extends Controller
             ->orderBy('tanggal')
             ->get();
 
-        return view('guru.absensi.history', compact('schedule', 'histories'));
+        return view('guru.absensi.history', compact('schedule', 'histories', 'allYears', 'selectedYear'));
     }
 
     public function historyDetail($schedule_id, $attendance_id)

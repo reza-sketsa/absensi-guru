@@ -15,16 +15,38 @@
 
         {{-- Filter --}}
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-            <h5 class="fw-bold mb-0">Dashboard</h5>
-            <div class="btn-group btn-group-sm shadow-sm flex-wrap">
-                <a href="?filter=today" class="btn btn-outline-primary {{ $filter == 'today' ? 'active' : '' }}">Hari
-                    ini</a>
-                <a href="?filter=weekly"
-                    class="btn btn-outline-primary {{ $filter == 'weekly' ? 'active' : '' }}">Mingguan</a>
-                <a href="?filter=monthly"
-                    class="btn btn-outline-primary {{ $filter == 'monthly' ? 'active' : '' }}">Bulanan</a>
-                <a href="?filter=semester"
-                    class="btn btn-outline-primary {{ $filter == 'semester' ? 'active' : '' }}">Semester</a>
+            <div>
+                <h5 class="fw-bold mb-0">Dashboard</h5>
+                @if (!$isActiveYear)
+                    <span class="badge bg-warning text-dark mt-1">
+                        <i class="bi bi-eye me-1"></i>Mode Baca — {{ $selectedYear->tahun }} {{ $selectedYear->semester }}
+                    </span>
+                @endif
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                {{-- Dropdown TA --}}
+                <select class="form-select form-select-sm w-auto shadow-sm"
+                    onchange="window.location.href='?filter={{ $filter }}&academic_year_id='+this.value">
+                    @foreach ($allYears as $y)
+                        <option value="{{ $y->id }}"
+                            {{ $selectedYear && $selectedYear->id == $y->id ? 'selected' : '' }}>
+                            {{ $y->tahun }} - {{ $y->semester }}
+                            {{ $y->is_active ? '(Aktif)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+
+                {{-- Filter periode --}}
+                <div class="btn-group btn-group-sm shadow-sm">
+                    <a href="?filter=today&academic_year_id={{ $selectedYear?->id }}"
+                        class="btn btn-outline-primary {{ $filter == 'today' ? 'active' : '' }}">Hari ini</a>
+                    <a href="?filter=weekly&academic_year_id={{ $selectedYear?->id }}"
+                        class="btn btn-outline-primary {{ $filter == 'weekly' ? 'active' : '' }}">Mingguan</a>
+                    <a href="?filter=monthly&academic_year_id={{ $selectedYear?->id }}"
+                        class="btn btn-outline-primary {{ $filter == 'monthly' ? 'active' : '' }}">Bulanan</a>
+                    <a href="?filter=semester&academic_year_id={{ $selectedYear?->id }}"
+                        class="btn btn-outline-primary {{ $filter == 'semester' ? 'active' : '' }}">Semester</a>
+                </div>
             </div>
         </div>
 
@@ -69,52 +91,6 @@
                 Belum ada data absensi untuk periode ini.
             </div>
         @endforelse
-
-        {{-- Siswa Ketidakhadiran Tertinggi --}}
-        <div class="card border-0 shadow-sm mt-4">
-            <div class="card-body">
-                <h6 class="fw-bold mb-3">Siswa dengan Ketidakhadiran Tertinggi</h6>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Nama Siswa</th>
-                                <th class="text-center">Alpa</th>
-                                <th class="text-center">Total (A+S+I)</th>
-                                <th>Tindakan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($lowAttendanceStudents as $item)
-                                <tr>
-                                    <td class="fw-bold">
-                                        {{ $item->student->nama }}
-                                        <div class="small text-muted fw-normal">
-                                            {{ $item->student->classroom->nama_kelas ?? '' }}
-                                        </div>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-danger">{{ $item->total_alpa }}</span>
-                                    </td>
-                                    <td class="text-center text-muted small">{{ $item->total_tidak_hadir }} Hari</td>
-                                    <td>
-                                        <a href="{{ route('guru.siswa.detail', $item->student_id) }}"
-                                            class="btn btn-sm btn-outline-primary shadow-sm">
-                                            <i class="bi bi-eye"></i> Detail
-                                        </a>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center text-muted py-3">Tidak ada data ketidakhadiran.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
 
     @push('scripts')

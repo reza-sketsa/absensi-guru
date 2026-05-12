@@ -11,15 +11,29 @@
                     <span class="badge bg-primary-subtle text-primary fw-semibold ms-1">{{ ucfirst($filter) }}</span>
                 </p>
             </div>
-            <div class="btn-group shadow-sm flex-wrap">
-                <a href="?filter=today" class="btn btn-sm btn-outline-primary {{ $filter == 'today' ? 'active' : '' }}">Hari
-                    Ini</a>
-                <a href="?filter=weekly"
-                    class="btn btn-sm btn-outline-primary {{ $filter == 'weekly' ? 'active' : '' }}">Mingguan</a>
-                <a href="?filter=monthly"
-                    class="btn btn-sm btn-outline-primary {{ $filter == 'monthly' ? 'active' : '' }}">Bulanan</a>
-                <a href="?filter=semester"
-                    class="btn btn-sm btn-outline-primary {{ $filter == 'semester' ? 'active' : '' }}">Semester</a>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                {{-- Dropdown TA --}}
+                <select class="form-select form-select-sm w-auto shadow-sm"
+                    onchange="window.location.href='?filter={{ $filter }}&academic_year_id='+this.value">
+                    @foreach ($allYears as $y)
+                        <option value="{{ $y->id }}" {{ $activeYear && $activeYear->id == $y->id ? 'selected' : '' }}>
+                            {{ $y->tahun }} - {{ $y->semester }}
+                            {{ $y->is_active ? '(Aktif)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+
+                {{-- Filter periode --}}
+                <div class="btn-group shadow-sm">
+                    <a href="?filter=today&academic_year_id={{ $activeYear?->id }}"
+                        class="btn btn-sm btn-outline-primary {{ $filter == 'today' ? 'active' : '' }}">Hari Ini</a>
+                    <a href="?filter=weekly&academic_year_id={{ $activeYear?->id }}"
+                        class="btn btn-sm btn-outline-primary {{ $filter == 'weekly' ? 'active' : '' }}">Mingguan</a>
+                    <a href="?filter=monthly&academic_year_id={{ $activeYear?->id }}"
+                        class="btn btn-sm btn-outline-primary {{ $filter == 'monthly' ? 'active' : '' }}">Bulanan</a>
+                    <a href="?filter=semester&academic_year_id={{ $activeYear?->id }}"
+                        class="btn btn-sm btn-outline-primary {{ $filter == 'semester' ? 'active' : '' }}">Semester</a>
+                </div>
             </div>
         </div>
 

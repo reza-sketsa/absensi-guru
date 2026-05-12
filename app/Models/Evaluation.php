@@ -17,6 +17,7 @@ class Evaluation extends Model
         'classroom_id',
         'teacher_id',
         'academic_year_id',
+        'semester',
         'jenis',
         'nama_penilaian',
         'tanggal'
