@@ -27,16 +27,46 @@
                     <div class="card border-0 shadow-sm text-center p-4">
                         <div class="mb-3">
                             <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
-                                style="width: 80px; height: 80px; fontSize: 2rem;">
+                                style="width: 80px; height: 80px; font-size: 2rem;">
                                 {{ substr($student->nama, 0, 1) }}
                             </div>
                         </div>
                         <h5 class="fw-bold">{{ $student->nama }}</h5>
-                        <p class="text-muted">{{ $student->classroom->nama_kelas ?? 'Tanpa Kelas' }}</p>
+                        <p class="text-muted mb-0">{{ $student->classroom->nama_kelas ?? 'Tanpa Kelas' }}</p>
                         <hr>
-                        <div class="row g-2">
+                        <div class="row g-2 text-start">
+                            <div class="col-6">
+                                <small class="text-muted d-block">NIS</small>
+                                <span class="fw-bold">{{ $student->nis }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Jenis Kelamin</small>
+                                <span class="fw-bold">{{ $student->jk == 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Agama</small>
+                                <span class="fw-bold">{{ $student->agama }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Tanggal Lahir</small>
+                                <span
+                                    class="fw-bold">{{ \Carbon\Carbon::parse($student->tgl_lahir)->format('d M Y') }}</span>
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted d-block">Alamat</small>
+                                <span class="fw-bold">{{ $student->alamat }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">No. Telp</small>
+                                <span class="fw-bold">{{ $student->no_telp ?? '-' }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">No. Telp Ortu</small>
+                                <span class="fw-bold">{{ $student->no_telp_ortu ?? '-' }}</span>
+                            </div>
+                            <hr>
                             @foreach ($summary as $status => $count)
-                                <div class="col-6 text-start">
+                                <div class="col-6">
                                     <small class="text-muted d-block">{{ $status }}</small>
                                     <span class="fw-bold">{{ $count }} Hari</span>
                                 </div>

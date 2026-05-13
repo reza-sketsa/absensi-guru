@@ -77,4 +77,45 @@ class StudentController extends Controller
 
         return redirect()->back()->with('success', 'Data siswa berhasil dihapus.');
     }
+
+    public function import(Request $request, $kelas_id)
+    {
+        $request->validate([
+            'file_siswa' => 'required|file|mimes:csv,txt'
+        ]);
+        $file = $request->file('file_siswa');
+
+        $rows = array_map('str_getcsv', file($file->getPathname()));
+        $header = array_shift($rows); // baris pertama = header
+
+        $berhasil = 0;
+        $gagal    = 0;
+
+        foreach ($rows as $row) {
+            if (count($row) < count($header)) continue;
+
+            $data = array_combine($header, $row);
+
+            $validator = Validator::make($data, [
+                'nama'      => 'required|string',
+                'nis'       => 'required|max:10|unique:students,nis',
+                'jk'        => 'required|in:L,P',
+                'agama'     => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
+                'tgl_lahir' => 'required|date',
+                'alamat'    => 'required|string',
+                'no_telp'      => 'nullable|string',
+                'no_telp_ortu' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                $gagal++;
+                continue;
+            }
+
+            Student::create(array_merge($validator->validated(), ['classroom_id' => $kelas_id]));
+            $berhasil++;
+        }
+
+        return redirect()->back()->with('success', "Import selesai: {$berhasil} berhasil, {$gagal} dilewati.");
+    }
 }

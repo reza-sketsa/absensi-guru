@@ -153,4 +153,16 @@
             });
         });
     }
+
+    // =====================
+    // IMPORT SISWA
+    // =====================
+    const formImport = document.querySelector('#modalImportSiswa form');
+    if (formImport) {
+        formImport.addEventListener('submit', function() {
+            const btn = formImport.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Mengimport...';
+        });
+    }
 </script>

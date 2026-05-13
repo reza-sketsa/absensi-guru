@@ -64,6 +64,10 @@
                                 <td class="fw-bold">{{ $s->nama }}</td>
                                 <td>{{ $s->jk }}</td>
                                 <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-light border" data-bs-toggle="modal"
+                                        data-bs-target="#modalDetailSiswa{{ $s->id }}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
                                     <button class="btn btn-sm btn-light text-primary" data-bs-toggle="modal"
                                         data-bs-target="#modalEditSiswa{{ $s->id }}">
                                         <i class="bi bi-pencil"></i>
@@ -233,6 +237,59 @@
                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalDetailSiswa{{ $s->id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-0">
+                        <h5 class="fw-bold">Detail Siswa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center mb-3">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                                style="width: 60px; height: 60px; font-size: 24px;">
+                                {{ strtoupper(substr($s->nama, 0, 1)) }}
+                            </div>
+                            <h5 class="fw-bold mb-0">{{ $s->nama }}</h5>
+                            <p class="text-muted small">NIS: {{ $s->nis }}</p>
+                        </div>
+                        <hr>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Jenis Kelamin</small>
+                                <span class="fw-semibold">{{ $s->jk == 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Agama</small>
+                                <span class="fw-semibold">{{ $s->agama }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Tanggal Lahir</small>
+                                <span
+                                    class="fw-semibold">{{ \Carbon\Carbon::parse($s->tgl_lahir)->format('d M Y') }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Kelas</small>
+                                <span class="fw-semibold">{{ $kelas->tingkat }}-{{ $kelas->paralel }}</span>
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted d-block">Alamat</small>
+                                <span class="fw-semibold">{{ $s->alamat }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">No. Telp Siswa</small>
+                                <span class="fw-semibold">{{ $s->no_telp ?? '-' }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">No. Telp Ortu</small>
+                                <span class="fw-semibold">{{ $s->no_telp_ortu ?? '-' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     @endforeach

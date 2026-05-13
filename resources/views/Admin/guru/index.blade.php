@@ -59,7 +59,7 @@
                                             </button>
 
                                             <a href="{{ route('admin.guru.edit', $teacher->id) }}"
-                                                class="btn btn-sm btn-light border">
+                                                class="btn btn-sm btn-light text-primary">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
 

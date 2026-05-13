@@ -90,8 +90,9 @@
                     {{-- MENU KHUSUS GURU --}}
                 @elseif (Auth::user()->role == 'Guru')
                     <li class="nav-item text-center">
-                        <a class="nav-link {{ request()->routeIs('guru.dashboard') ? 'text-primary' : 'text-muted' }}"
+                        <a class="nav-link {{ request()->routeIs('guru.dashboard') || request()->is('guru/rekap*') ? 'text-primary' : 'text-muted' }}"
                             href="{{ route('guru.dashboard') }}">
+
                             <i class="bi bi-graph-up-arrow fs-4"></i>
                             <small class="d-block" style="font-size: 10px;">Dashboard</small>
                         </a>
@@ -111,7 +112,7 @@
                         </a>
                     </li>
                     <li class="nav-item text-center">
-                        <a class="nav-link {{ request()->is('guru/kelas*') ? 'text-primary' : 'text-muted' }}"
+                        <a class="nav-link {{ request()->is('guru/kelas*') || request()->routeIs('guru.siswa.detail') ? 'text-primary' : 'text-muted' }}"
                             href="{{ route('guru.kelas.index') }}">
                             <i class="bi bi-people fs-4"></i>
                             <small class="d-block" style="font-size: 10px;">Kelas</small>
