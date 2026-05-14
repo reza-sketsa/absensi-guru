@@ -47,29 +47,38 @@ class AdminController extends Controller
             ->leftJoin('schedules', function ($join) use ($activeYear) {
                 $join->on('schedules.teacher_id', '=', 'teachers.id');
                 if ($activeYear) {
-                    $join->where('schedules.academic_year_id', $activeYear->id); // tambah
+                    $join->where('schedules.academic_year_id', $activeYear->id);
                 }
             })
             ->leftJoin('attendances', function ($join) use ($startDate, $endDate, $activeYear) {
                 $join->on('attendances.schedule_id', '=', 'schedules.id')
                     ->whereBetween('attendances.tanggal', [$startDate, $endDate]);
                 if ($activeYear) {
-                    $join->where('attendances.academic_year_id', $activeYear->id); // tambah
+                    $join->where('attendances.academic_year_id', $activeYear->id);
                 }
             })
             ->selectRaw("
-            teachers.id,
-            teachers.nama_guru,
-            COUNT(DISTINCT schedules.id) as total_jadwal,
-            COUNT(DISTINCT attendances.id) as total_absen
-        ")
+        teachers.id,
+        teachers.nama_guru,
+        COUNT(DISTINCT attendances.id) as total_absen,
+        COUNT(DISTINCT schedules.id) as total_jadwal
+    ")
             ->groupBy('teachers.id', 'teachers.nama_guru')
             ->orderByDesc('total_absen')
             ->get()
-            ->map(function ($item) {
-                $item->persentase = $item->total_jadwal > 0
-                    ? round(($item->total_absen / $item->total_jadwal) * 100)
+            ->map(function ($item) use ($startDate, $endDate) {
+                // Hitung berapa minggu dalam periode filter
+                $start  = \Carbon\Carbon::parse($startDate);
+                $end    = \Carbon\Carbon::parse($endDate);
+                $minggu = max(1, $start->diffInWeeks($end) + 1);
+
+                // Total pertemuan yang seharusnya = jumlah jadwal × jumlah minggu
+                $expectedPertemuan = $item->total_jadwal * $minggu;
+
+                $item->persentase = $expectedPertemuan > 0
+                    ? min(100, round(($item->total_absen / $expectedPertemuan) * 100))
                     : 0;
+
                 return $item;
             });
 

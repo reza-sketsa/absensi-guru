@@ -1,99 +1,138 @@
 @extends('layouts.app')
 
+@section('title', 'Dashboard Guru')
+
 @section('content')
     <div class="container py-4">
+
+        {{-- Header Gradient --}}
+        <div class="card border-0 rounded-4 mb-4 bg-gradient-header shadow-md">
+            <div class="card-body px-4 py-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <h5 class="fw-bold mb-1 text-white">Dashboard Guru</h5>
+                        <p class="mb-0 text-white opacity-75 small">
+                            Halo, {{ Auth::user()->teacher->nama_guru ?? Auth::user()->name }}
+                        </p>
+                    </div>
+
+                    {{-- FILTER & DROPDOWN --}}
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        {{-- Dropdown TA --}}
+                        <select class="form-select form-select-sm w-auto"
+                            onchange="window.location.href='?filter={{ $filter }}&academic_year_id='+this.value">
+                            @foreach ($allYears as $y)
+                                <option value="{{ $y->id }}"
+                                    {{ $selectedYear && $selectedYear->id == $y->id ? 'selected' : '' }}
+                                    style="color: #000;">
+                                    {{ $y->tahun }} - {{ $y->semester }}
+                                    {{ $y->is_active ? '(Aktif)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        {{-- Filter periode --}}
+                        <div class="btn-group">
+                            @foreach (['today' => 'Hari ini', 'weekly' => 'Mingguan', 'monthly' => 'Bulanan', 'semester' => 'Semester'] as $key => $label)
+                                <a href="?filter={{ $key }}&academic_year_id={{ $selectedYear?->id }}"
+                                    class="btn btn-sm {{ $filter == $key ? 'btn-light' : 'btn-outline-light' }}">
+                                    {{ $label }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Badge Mode Baca (tetap di dalam header, di bawah) --}}
+                @if (!$isActiveYear)
+                    <div class="mt-3">
+                        <span class="badge bg-warning-subtle text-warning px-3 py-2">
+                            <i class="bi bi-eye me-1"></i>Mode Baca — {{ $selectedYear->tahun }}
+                            {{ $selectedYear->semester }}
+                        </span>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Alert success --}}
         @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4" role="alert"
+                style="border-left: 4px solid #22c55e; background-color: #f0fdf4;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                    <div class="small">{{ session('success') }}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
 
-        <div class="mb-3">
-            <h6 class="fw-bold text-muted">Halo, {{ Auth::user()->teacher->nama_guru ?? Auth::user()->name }} 👋</h6>
-        </div>
-
-        {{-- Filter --}}
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-            <div>
-                <h5 class="fw-bold mb-0">Dashboard</h5>
-                @if (!$isActiveYear)
-                    <span class="badge bg-warning text-dark mt-1">
-                        <i class="bi bi-eye me-1"></i>Mode Baca — {{ $selectedYear->tahun }} {{ $selectedYear->semester }}
-                    </span>
-                @endif
-            </div>
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                {{-- Dropdown TA --}}
-                <select class="form-select form-select-sm w-auto shadow-sm"
-                    onchange="window.location.href='?filter={{ $filter }}&academic_year_id='+this.value">
-                    @foreach ($allYears as $y)
-                        <option value="{{ $y->id }}"
-                            {{ $selectedYear && $selectedYear->id == $y->id ? 'selected' : '' }}>
-                            {{ $y->tahun }} - {{ $y->semester }}
-                            {{ $y->is_active ? '(Aktif)' : '' }}
-                        </option>
-                    @endforeach
-                </select>
-
-                {{-- Filter periode --}}
-                <div class="btn-group btn-group-sm shadow-sm">
-                    <a href="?filter=today&academic_year_id={{ $selectedYear?->id }}"
-                        class="btn btn-outline-primary {{ $filter == 'today' ? 'active' : '' }}">Hari ini</a>
-                    <a href="?filter=weekly&academic_year_id={{ $selectedYear?->id }}"
-                        class="btn btn-outline-primary {{ $filter == 'weekly' ? 'active' : '' }}">Mingguan</a>
-                    <a href="?filter=monthly&academic_year_id={{ $selectedYear?->id }}"
-                        class="btn btn-outline-primary {{ $filter == 'monthly' ? 'active' : '' }}">Bulanan</a>
-                    <a href="?filter=semester&academic_year_id={{ $selectedYear?->id }}"
-                        class="btn btn-outline-primary {{ $filter == 'semester' ? 'active' : '' }}">Semester</a>
-                </div>
-            </div>
-        </div>
-
         {{-- Chart --}}
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-                <h6 class="fw-bold mb-3">Statistik Kehadiran Siswa</h6>
-                <div style="position: relative; height: 250px;">
+        <div class="card border-0 shadow rounded-3 mb-4">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h6 class="fw-semibold mb-0 text-primary">
+                    <i class="bi bi-graph-up me-2"></i>Statistik Kehadiran Siswa
+                </h6>
+            </div>
+            <div class="card-body p-4">
+                <div style="position: relative; height: 280px;">
+                    {{-- Chart akan diinisialisasi oleh components/scripts.blade.php --}}
                     <canvas id="absensiChart" data-stats='@json($stats)'></canvas>
                 </div>
             </div>
         </div>
 
         {{-- Rekap Per Kelas --}}
-        <h6 class="fw-bold mb-3">Rekap Per Kelas</h6>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-semibold text-primary mb-0">
+                <i class="bi bi-building me-2"></i>Rekap Per Kelas
+            </h6>
+            <small class="text-muted">Klik kelas untuk detail</small>
+        </div>
+
         @forelse($rekapKelas as $rk)
             @php
                 $total = $rk->hadir + $rk->izin + $rk->sakit + $rk->alpa;
                 $persen = $total > 0 ? round(($rk->hadir / $total) * 100) : 0;
-                $color = $persen >= 80 ? 'bg-success' : ($persen >= 50 ? 'bg-warning' : 'bg-danger');
+                $color = $persen >= 80 ? 'success' : ($persen >= 50 ? 'warning' : 'danger');
             @endphp
             <a href="{{ route('guru.rekap.kelas', [$rk->classroom_id, 'filter' => $filter]) }}"
-                class="card mb-2 border-0 shadow-sm text-decoration-none text-dark">
-                <div class="card-body">
+                class="card border-0 shadow rounded-3 mb-3 text-decoration-none d-block">
+                <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-bold">{{ $rk->nama_kelas }}</span>
+                        <span class="fw-semibold text-dark">{{ $rk->nama_kelas }}</span>
                         <small class="text-muted">{{ $persen }}% hadir</small>
                     </div>
-                    <div class="progress mb-2" style="height: 6px;">
-                        <div class="progress-bar {{ $color }}" style="width: {{ $persen }}%"></div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-{{ $color }}" style="width: {{ $persen }}%"></div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <span class="badge bg-success-subtle text-success">H: {{ $rk->hadir }}</span>
-                        <span class="badge bg-primary-subtle text-primary">I: {{ $rk->izin }}</span>
-                        <span class="badge bg-warning-subtle text-warning">S: {{ $rk->sakit }}</span>
-                        <span class="badge bg-danger-subtle text-danger">A: {{ $rk->alpa }}</span>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge rounded-pill bg-success-subtle text-success">
+                            <i class="bi bi-check-circle me-1"></i>H: {{ $rk->hadir }}
+                        </span>
+                        <span class="badge rounded-pill bg-primary-subtle text-primary">
+                            <i class="bi bi-envelope me-1"></i>I: {{ $rk->izin }}
+                        </span>
+                        <span class="badge rounded-pill bg-warning-subtle text-warning">
+                            <i class="bi bi-heart me-1"></i>S: {{ $rk->sakit }}
+                        </span>
+                        <span class="badge rounded-pill bg-danger-subtle text-danger">
+                            <i class="bi bi-x-circle me-1"></i>A: {{ $rk->alpa }}
+                        </span>
                     </div>
                 </div>
             </a>
         @empty
-            <div class="alert alert-warning text-center border-0 shadow-sm">
-                Belum ada data absensi untuk periode ini.
+            <div class="card border-0 shadow rounded-3">
+                <div class="card-body py-5 text-center">
+                    <i class="bi bi-inbox display-6 d-block mb-2 opacity-50 text-muted"></i>
+                    <p class="text-muted small mb-0">Belum ada data absensi untuk periode ini.</p>
+                </div>
             </div>
         @endforelse
     </div>
-
-    @push('scripts')
-        @include('components.scripts')
-    @endpush
 @endsection
+
+@push('scripts')
+    @include('components.scripts')
+@endpush

@@ -43,15 +43,15 @@ class StudentController extends Controller
         return redirect()->back()->with('success', 'Siswa berhasil ditambahkan.');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $kelas_id, $id)
     {
         $validator = Validator::make($request->all(), [
-            'nama'      => 'required|string',
-            'nis'       => 'required|max:10|unique:students,nis,' . $id,
-            'jk'        => 'required|in:L,P',
-            'agama'     => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
-            'tgl_lahir' => 'required|date',
-            'alamat'    => 'required|string',
+            'nama'         => 'required|string',
+            'nis'          => 'required|max:10|unique:students,nis,' . $id,
+            'jk'           => 'required|in:L,P',
+            'agama'        => 'required|in:Islam,Kristen,Katolik,Hindu,Buddha,Khonghucu',
+            'tgl_lahir'    => 'required|date',
+            'alamat'       => 'required|string',
             'no_telp'      => 'nullable|string',
             'no_telp_ortu' => 'nullable|string',
         ]);
@@ -60,12 +60,12 @@ class StudentController extends Controller
             return redirect()->back()->with('error', $validator->errors()->first());
         }
 
-        \App\Models\Student::findOrFail($id)->update($validator->validated());
+        Student::findOrFail($id)->update($validator->validated());
 
         return redirect()->back()->with('success', 'Data siswa berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function destroy($kelas_id, $id)
     {
         $student = Student::findOrFail($id);
 

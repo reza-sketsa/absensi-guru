@@ -1,139 +1,101 @@
 @extends('layouts.app')
-
 @section('title', 'Manajemen Data Guru')
 
 @section('content')
-    <div class="container pb-5">
-        {{-- Header: Stackable di Mobile --}}
-        <div class="card border-0 shadow-sm bg-primary text-white mb-4">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center">
+    <div class="container py-4">
+
+        {{-- Header - PAKAI CLASS bg-gradient-header --}}
+        <div class="card border-0 rounded-4 mb-4 bg-gradient-header shadow">
+            <div class="card-body px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center gap-3">
                     <div>
-                        <h4 class="fw-bold mb-1">Data Guru</h4>
-                        <p class="mb-0 opacity-75 small">Total: {{ $teachers->count() }} Guru terdaftar</p>
+                        <h5 class="fw-bold mb-1 text-white">Data Guru</h5>
+                        <p class="mb-0 text-white opacity-75 small">
+                            Total: {{ $teachers->total() }} guru terdaftar
+                        </p>
                     </div>
-                    <a href="{{ route('admin.guru.create') }}" class="btn btn-light shadow-sm">
-                        <i class="bi bi-person-plus-fill me-1"></i> Tambah Guru
+                    <a href="{{ route('admin.guru.create') }}" class="btn btn-light fw-semibold flex-shrink-0">
+                        <i class="bi bi-person-plus-fill me-1"></i>Tambah Guru
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="mb-3">
-            <input type="text" id="searchGuru" class="form-control" placeholder="Cari nama atau NIP guru...">
-        </div>
+        {{-- Search --}}
+        <form method="GET" action="{{ route('admin.guru.index') }}" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control rounded-start-3"
+                    placeholder="Cari nama atau NIP guru..." value="{{ $search ?? '' }}">
+                @if ($search)
+                    <a href="{{ route('admin.guru.index') }}" class="btn btn-outline-secondary" title="Reset">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                @endif
+                <button class="btn btn-primary rounded-end-3" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
 
-        <div class="card border-0 shadow-sm overflow-hidden"> {{-- Tambah overflow-hidden agar radius card terjaga --}}
+        {{-- DESKTOP: Tabel (md ke atas) --}}
+        <div class="card border-0 shadow rounded-3 overflow-hidden d-none d-md-block">
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
-                            <tr class="text-nowrap"> {{-- Mencegah header pecah di mobile --}}
-                                <th class="ps-4 py-3 border-0 text-muted small fw-bold">NAMA / NIP</th>
-                                <th class="py-3 border-0 text-muted small fw-bold">JK</th>
-                                <th class="py-3 border-0 text-muted small fw-bold d-none d-md-table-cell">KONTAK</th>
-                                <th class="py-3 border-0 text-center text-muted small fw-bold">AKSI</th>
+                        <thead>
+                            <tr class="text-nowrap">
+                                <th class="ps-4 py-3 text-muted small fw-semibold">NAMA / NIP</th>
+                                <th class="py-3 text-muted small fw-semibold">JK</th>
+                                <th class="py-3 text-muted small fw-semibold">KONTAK</th>
+                                <th class="py-3 text-center text-muted small fw-semibold pe-4">AKSI</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($teachers as $teacher)
                                 <tr>
                                     <td class="ps-4">
-                                        <div class="fw-bold text-dark">{{ $teacher->nama_guru }}</div>
+                                        <div class="fw-semibold text-dark">{{ $teacher->nama_guru }}</div>
                                         <small class="text-muted">{{ $teacher->nip ?? '-' }}</small>
                                     </td>
-                                    <td class="text-nowrap"> {{-- Mencegah badge terpotong --}}
+                                    <td>
                                         <span
-                                            class="badge {{ $teacher->jk == 'L' ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger' }} border-0">
+                                            class="badge rounded-pill {{ $teacher->jk == 'L' ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger' }}">
                                             {{ $teacher->jk == 'L' ? 'Laki-laki' : 'Perempuan' }}
                                         </span>
                                     </td>
-                                    <td class="text-nowrap small text-muted d-none d-md-table-cell">
+                                    <td class="small text-muted">
                                         <i class="bi bi-telephone me-1"></i>{{ $teacher->no_telp }}
                                     </td>
-                                    <td class="text-center px-4">
-                                        <div class="d-flex justify-content-center gap-2 flex-wrap">
-                                            <button type="button" class="btn btn-sm btn-light border"
-                                                data-bs-toggle="modal" data-bs-target="#detailModal{{ $teacher->id }}">
+                                    <td class="text-center pe-4">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                data-bs-toggle="modal" data-bs-target="#detailModal{{ $teacher->id }}"
+                                                title="Lihat Detail">
                                                 <i class="bi bi-eye"></i>
                                             </button>
-
                                             <a href="{{ route('admin.guru.edit', $teacher->id) }}"
-                                                class="btn btn-sm btn-light text-primary">
+                                                class="btn btn-sm btn-outline-secondary" title="Edit">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-
-                                            <form id="form-hapus-{{ $teacher->id }}"
-                                                action="{{ route('admin.guru.destroy', $teacher->id) }}" method="POST"
-                                                class="d-inline">
+                                            <form action="{{ route('admin.guru.destroy', $teacher->id) }}" method="POST"
+                                                class="d-inline" id="form-hapus-{{ $teacher->id }}">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="button" class="btn btn-sm btn-danger btn-hapus"
-                                                    data-id="{{ $teacher->id }}" data-nama="{{ $teacher->nama_guru }}">
-                                                    <i class="bi bi-trash"></i>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary btn-hapus"
+                                                    data-id="{{ $teacher->id }}" data-nama="{{ $teacher->nama_guru }}"
+                                                    title="Hapus">
+                                                    <i class="bi bi-trash text-danger"></i>
                                                 </button>
                                             </form>
                                         </div>
                                     </td>
                                 </tr>
-
-                                {{-- Modal Detail (Tetap sama seperti kodemu) --}}
-                                <div class="modal fade" id="detailModal{{ $teacher->id }}" tabindex="-1"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 shadow">
-                                            <div class="modal-header border-0 pb-0">
-                                                <h5 class="fw-bold">Detail Guru</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="card border-0 bg-light">
-                                                    <div class="card-body">
-                                                        <div class="text-center mb-3">
-                                                            <div class="avatar-lg bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
-                                                                style="width: 60px; height: 60px; font-size: 24px;">
-                                                                {{ strtoupper(substr($teacher->nama_guru, 0, 1)) }}
-                                                            </div>
-                                                            <h5 class="fw-bold mb-0">{{ $teacher->nama_guru }}</h5>
-                                                            <p class="text-muted small">NIP: {{ $teacher->nip ?? '-' }}</p>
-                                                        </div>
-                                                        <hr class="opacity-10">
-                                                        <div class="row g-3 text-start">
-                                                            <div class="col-6">
-                                                                <small class="text-muted d-block small">Agama</small>
-                                                                <span class="fw-semibold">{{ $teacher->agama }}</span>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <small class="text-muted d-block small">Jenis
-                                                                    Kelamin</small>
-                                                                <span
-                                                                    class="fw-semibold">{{ $teacher->jk == 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <small class="text-muted d-block small">Tanggal
-                                                                    Lahir</small>
-                                                                <span
-                                                                    class="fw-semibold text-nowrap">{{ $teacher->tgl_lahir }}</span>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <small class="text-muted d-block small">No. Telepon</small>
-                                                                <span class="fw-semibold">{{ $teacher->no_telp }}</span>
-                                                            </div>
-                                                            <div class="col-12">
-                                                                <small class="text-muted d-block small">Alamat</small>
-                                                                <span class="fw-semibold">{{ $teacher->alamat }}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted small">Belum ada data guru.</td>
+                                    <td colspan="4" class="text-center py-5 text-muted small">
+                                        <i class="bi bi-inbox display-6 d-block mb-2 opacity-50"></i>
+                                        Belum ada data guru.
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -141,9 +103,121 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    @push('scripts')
-        @include('components.scripts')
-    @endpush
+        {{-- MOBILE: Card list (di bawah md) --}}
+        <div class="d-md-none">
+            @forelse($teachers as $teacher)
+                <div class="card border-0 shadow rounded-3 mb-3">
+                    <div class="card-body py-3 px-3">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="fw-semibold text-dark text-truncate">{{ $teacher->nama_guru }}</div>
+                                <small class="text-muted d-block">{{ $teacher->nip ?? '-' }}</small>
+                                <div class="mt-1">
+                                    <span
+                                        class="badge rounded-pill {{ $teacher->jk == 'L' ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger' }}">
+                                        {{ $teacher->jk == 'L' ? 'Laki-laki' : 'Perempuan' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-1 flex-shrink-0">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
+                                    data-bs-target="#detailModal{{ $teacher->id }}" title="Lihat Detail">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <a href="{{ route('admin.guru.edit', $teacher->id) }}"
+                                    class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route('admin.guru.destroy', $teacher->id) }}" method="POST"
+                                    class="d-inline" id="form-hapus-{{ $teacher->id }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-hapus"
+                                        data-id="{{ $teacher->id }}" data-nama="{{ $teacher->nama_guru }}"
+                                        title="Hapus">
+                                        <i class="bi bi-trash text-danger"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-5 text-muted small">
+                    <i class="bi bi-inbox display-6 d-block mb-2 opacity-50"></i>
+                    Belum ada data guru.
+                </div>
+            @endforelse
+        </div>
+
+        {{-- Modal Detail (dipercantik) --}}
+        @foreach ($teachers as $teacher)
+            <div class="modal fade" id="detailModal{{ $teacher->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 rounded-4 shadow-lg">
+                        <div class="modal-header border-0 pb-0 pt-4 px-4">
+                            <h6 class="fw-bold mb-0 text-primary">Detail Guru</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body pt-2 px-4">
+                            <div class="text-center mb-3">
+                                <div class="bg-gradient-header text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                                    style="width:64px;height:64px;font-size:24px;">
+                                    {{ strtoupper(substr($teacher->nama_guru, 0, 1)) }}
+                                </div>
+                                <h6 class="fw-bold mb-0">{{ $teacher->nama_guru }}</h6>
+                                <p class="text-muted small mb-0">NIP: {{ $teacher->nip ?? '-' }}</p>
+                            </div>
+                            <hr class="my-3">
+                            <div class="row g-3 text-start">
+                                <div class="col-6">
+                                    <div class="text-muted small mb-1">Jenis Kelamin</div>
+                                    <div class="fw-semibold small">{{ $teacher->jk == 'L' ? 'Laki-laki' : 'Perempuan' }}
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-muted small mb-1">Agama</div>
+                                    <div class="fw-semibold small">{{ $teacher->agama ?? '-' }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-muted small mb-1">Tanggal Lahir</div>
+                                    <div class="fw-semibold small">{{ $teacher->tgl_lahir ?? '-' }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-muted small mb-1">No. Telepon</div>
+                                    <div class="fw-semibold small">{{ $teacher->no_telp ?? '-' }}</div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="text-muted small mb-1">Alamat</div>
+                                    <div class="fw-semibold small">{{ $teacher->alamat ?? '-' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                            <a href="{{ route('admin.guru.edit', $teacher->id) }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-pencil me-1"></i>Edit Data
+                            </a>
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Tutup</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+
+        {{-- Pagination --}}
+        @if ($teachers->hasPages())
+            <div class="d-flex justify-content-between align-items-center mt-4 px-1">
+                <small class="text-muted">
+                    {{ $teachers->firstItem() }}–{{ $teachers->lastItem() }} dari {{ $teachers->total() }} guru
+                </small>
+                {{ $teachers->links('pagination::bootstrap-5') }}
+            </div>
+        @endif
+    </div>
 @endsection
+
+@push('scripts')
+    @include('components.scripts')
+@endpush

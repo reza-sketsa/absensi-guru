@@ -1,93 +1,114 @@
 @extends('layouts.app')
+@section('title', 'Jadwal Pelajaran')
 
 @section('content')
+    <div class="container py-4">
 
-    @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show mx-3 mt-3" role="alert">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
+        {{-- Alert error - custom modern --}}
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert"
+                style="border-left: 4px solid #dc2626; background-color: #fef2f2;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                    <div>
+                        <strong class="small">Gagal memproses data:</strong>
+                        <ul class="mb-0 mt-1 ps-3 small">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
 
-    <div class="container py-3 py-md-4">
-        <div class="card border-0 shadow-sm bg-primary text-white mb-4">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center">
+        {{-- Header - PAKAI CLASS bg-gradient-header --}}
+        <div class="card border-0 rounded-4 mb-4 bg-gradient-header shadow">
+            <div class="card-body px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        <a href="{{ route('admin.jadwal.index') }}" class="btn btn-outline-light border-0 btn-sm">
-                            <i class="bi bi-arrow-left fs-4"></i>
+                        <a href="{{ route('admin.jadwal.index') }}" class="btn btn-outline-light border-0 btn-sm p-1 lh-1">
+                            <i class="bi bi-arrow-left fs-5"></i>
                         </a>
                         <div>
-                            <h4 class="fw-bold mb-0">{{ $classroom->tingkat }} {{ $classroom->paralel }}</h4>
-                            <p class="mb-0 opacity-75 small">{{ count($schedules) }} jadwal — Hari {{ $hari }}</p>
+                            <h5 class="fw-bold mb-1 text-white">
+                                Kelas {{ $classroom->tingkat }} {{ $classroom->paralel }}
+                            </h5>
+                            <p class="mb-0 text-white opacity-75 small">
+                                {{ count($schedules) }} jadwal &mdash; Hari {{ $hari }}
+                            </p>
                         </div>
                     </div>
-                    <button class="btn btn-light btn-sm shadow-sm" data-bs-toggle="modal"
+                    <button class="btn btn-light btn-sm fw-semibold flex-shrink-0" data-bs-toggle="modal"
                         data-bs-target="#modalTambahJadwal">
-                        <i class="bi bi-plus-lg me-2"></i>Tambah Jadwal
+                        <i class="bi bi-plus-lg me-1"></i>
+                        <span class="d-none d-md-inline">Tambah Jadwal</span>
+                        <span class="d-md-none">Tambah</span>
                     </button>
                 </div>
             </div>
         </div>
 
         {{-- Filter Hari --}}
-        <div class="d-flex gap-2 flex-wrap mb-3">
-
+        <div class="d-flex gap-2 mb-4 overflow-auto pb-1">
             @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
                 <a href="{{ route('admin.jadwal.show', [$classroom->id, 'hari' => $h]) }}"
-                    class="btn btn-sm {{ $hari == $h ? 'btn-primary' : 'btn-outline-primary' }}">
+                    class="btn btn-sm flex-shrink-0 {{ $hari == $h ? 'btn-primary' : 'btn-outline-secondary' }}">
                     {{ $h }}
                 </a>
             @endforeach
         </div>
 
         {{-- Tabel Jadwal --}}
-        <div class="card border-0 shadow-sm overflow-hidden">
+        <div class="card border-0 shadow rounded-3 overflow-hidden">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
-                            <th>Jam</th>
-                            <th>Mapel & Guru</th>
-                            <th class="text-center px-4">Aksi</th>
+                            <th class="ps-4 py-3 text-muted small fw-semibold">JAM</th>
+                            <th class="py-3 text-muted small fw-semibold">MAPEL & GURU</th>
+                            <th class="py-3 text-center text-muted small fw-semibold pe-4">AKSI</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($schedules as $j)
                             <tr>
-                                <td class="text-nowrap">
-                                    <div class="small fw-bold">{{ \Carbon\Carbon::parse($j->jam_mulai)->format('H:i') }}
+                                <td class="ps-4 text-nowrap">
+                                    <div class="fw-semibold small">
+                                        {{ \Carbon\Carbon::parse($j->jam_mulai)->format('H:i') }}
                                     </div>
-                                    <div class="text-muted small">{{ \Carbon\Carbon::parse($j->jam_habis)->format('H:i') }}
+                                    <div class="text-muted small">
+                                        {{ \Carbon\Carbon::parse($j->jam_habis)->format('H:i') }}
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="fw-bold text-primary">{{ $j->nama_mapel }}</div>
-                                    <div class="text-muted small">{{ $j->nama_guru }}</div>
+                                    <div class="fw-semibold text-primary">{{ $j->nama_mapel }}</div>
+                                    <small class="text-muted">{{ $j->nama_guru }}</small>
                                 </td>
-                                <td class="text-center px-4">
-                                    <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="modal"
-                                        data-bs-target="#modalEditJadwal{{ $j->id }}">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <form action="{{ route('admin.jadwal.destroy', $j->id) }}" method="POST"
-                                        class="d-inline">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('Hapus jadwal ini?')">
-                                            <i class="bi bi-trash"></i>
+                                <td class="text-center pe-4">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
+                                            data-bs-target="#modalEditJadwal{{ $j->id }}" title="Edit">
+                                            <i class="bi bi-pencil text-primary"></i>
                                         </button>
-                                    </form>
+                                        <form action="{{ route('admin.jadwal.destroy', $j->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="btn btn-sm btn-outline-secondary btn-hapus"
+                                                data-id="{{ $j->id }}" data-nama="{{ $j->nama_mapel }}"
+                                                title="Hapus">
+                                                <i class="bi bi-trash text-danger"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center py-5 text-muted">
-                                    <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                                <td colspan="3" class="text-center py-5 text-muted small">
+                                    <i class="bi bi-calendar-x display-6 d-block mb-2 opacity-50"></i>
                                     Belum ada jadwal untuk hari ini.
                                 </td>
                             </tr>
@@ -96,126 +117,142 @@
                 </table>
             </div>
         </div>
+
     </div>
 
-    {{-- Modal Tambah --}}
+    {{-- Modal Tambah Jadwal --}}
     <div class="modal fade" id="modalTambahJadwal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <form action="{{ route('admin.jadwal.store') }}" method="POST" class="modal-content">
+            <form action="{{ route('admin.jadwal.store') }}" method="POST"
+                class="modal-content border-0 rounded-4 shadow-lg">
                 @csrf
                 <input type="hidden" name="classroom_id" value="{{ $classroom->id }}">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold">Tambah Jadwal</h5>
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h6 class="fw-bold mb-0 text-primary">Tambah Jadwal</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Hari</label>
-                        <select name="hari" class="form-select" required>
-                            <option value="" disabled selected>-- Pilih Hari --</option>
-                            @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
-                                <option value="{{ $h }}">{{ $h }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold">Jam Mulai</label>
+                <div class="modal-body px-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Hari</label>
+                            <select name="hari" class="form-select" required>
+                                <option value="" disabled selected>-- Pilih Hari --</option>
+                                @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
+                                    <option value="{{ $h }}">{{ $h }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Jam Mulai</label>
                             <input type="time" name="jam_mulai" class="form-control" required>
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold">Jam Selesai</label>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Jam Selesai</label>
                             <input type="time" name="jam_habis" class="form-control" required>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Mata Pelajaran</label>
-                        <select name="subject_id" class="form-select" required>
-                            <option value="" disabled selected>-- Pilih Mapel --</option>
-                            @foreach ($subjects as $s)
-                                <option value="{{ $s->id }}">{{ $s->nama_mapel }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Guru Pengajar</label>
-                        <select name="teacher_id" class="form-select" required>
-                            <option value="" disabled selected>-- Pilih Guru --</option>
-                            @foreach ($teachers as $g)
-                                <option value="{{ $g->id }}">{{ $g->nama_guru }}</option>
-                            @endforeach
-                        </select>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Mata Pelajaran</label>
+                            <select name="subject_id" class="form-select" required>
+                                <option value="" disabled selected>-- Pilih Mapel --</option>
+                                @foreach ($subjects as $s)
+                                    <option value="{{ $s->id }}">{{ $s->nama_mapel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Guru Pengajar</label>
+                            <select name="teacher_id" class="form-select" required>
+                                <option value="" disabled selected>-- Pilih Guru --</option>
+                                @foreach ($teachers as $g)
+                                    <option value="{{ $g->id }}">{{ $g->nama_guru }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light w-25" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary flex-fill">Simpan</button>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-save me-1"></i>Simpan
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    {{-- Modal Edit --}}
+    {{-- Modal Edit Jadwal --}}
     @foreach ($schedules as $j)
         <div class="modal fade" id="modalEditJadwal{{ $j->id }}" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-                <form action="{{ route('admin.jadwal.update', $j->id) }}" method="POST" class="modal-content">
-                    @csrf @method('PUT')
-                    <div class="modal-header border-0">
-                        <h5 class="modal-title fw-bold">Edit Jadwal</h5>
+                <form action="{{ route('admin.jadwal.update', $j->id) }}" method="POST"
+                    class="modal-content border-0 rounded-4 shadow-lg">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-header border-0 pb-0 pt-4 px-4">
+                        <h6 class="fw-bold mb-0 text-primary">Edit Jadwal</h6>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Hari</label>
-                            <select name="hari" class="form-select" required>
-                                @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
-                                    <option value="{{ $h }}" {{ $j->hari == $h ? 'selected' : '' }}>
-                                        {{ $h }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label small fw-bold">Jam Mulai</label>
+                    <div class="modal-body px-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Hari</label>
+                                <select name="hari" class="form-select" required>
+                                    @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
+                                        <option value="{{ $h }}" {{ $j->hari == $h ? 'selected' : '' }}>
+                                            {{ $h }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Jam Mulai</label>
                                 <input type="time" name="jam_mulai" class="form-control" value="{{ $j->jam_mulai }}"
                                     required>
                             </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label small fw-bold">Jam Selesai</label>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Jam Selesai</label>
                                 <input type="time" name="jam_habis" class="form-control" value="{{ $j->jam_habis }}"
                                     required>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Mata Pelajaran</label>
-                            <select name="subject_id" class="form-select" required>
-                                @foreach ($subjects as $s)
-                                    <option value="{{ $s->id }}" {{ $j->subject_id == $s->id ? 'selected' : '' }}>
-                                        {{ $s->nama_mapel }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Guru Pengajar</label>
-                            <select name="teacher_id" class="form-select" required>
-                                @foreach ($teachers as $g)
-                                    <option value="{{ $g->id }}" {{ $j->teacher_id == $g->id ? 'selected' : '' }}>
-                                        {{ $g->nama_guru }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Mata Pelajaran</label>
+                                <select name="subject_id" class="form-select" required>
+                                    @foreach ($subjects as $s)
+                                        <option value="{{ $s->id }}"
+                                            {{ $j->subject_id == $s->id ? 'selected' : '' }}>
+                                            {{ $s->nama_mapel }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Guru Pengajar</label>
+                                <select name="teacher_id" class="form-select" required>
+                                    @foreach ($teachers as $g)
+                                        <option value="{{ $g->id }}"
+                                            {{ $j->teacher_id == $g->id ? 'selected' : '' }}>
+                                            {{ $g->nama_guru }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-light w-25" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary flex-fill">Simpan Perubahan</button>
+                    <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                            data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-save me-1"></i>Simpan Perubahan
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     @endforeach
 
-    @include('components.scripts')
 @endsection
+
+@push('scripts')
+    @include('components.scripts')
+@endpush

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ClassroomRequest;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -54,7 +55,7 @@ class ClassroomController extends Controller
             while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 if (count($data) < 7) continue;
 
-                \App\Models\Student::create([
+                Student::create([
                     'nama'          => $data[0],
                     'nis'           => $data[1],
                     'jk'            => $data[2],
@@ -80,7 +81,7 @@ class ClassroomController extends Controller
     {
         $data = $request->validated();
 
-        DB::table('classroom')
+        DB::table('classrooms')
             ->where('id', $id)
             ->update([
                 'tingkat' => $data['tingkat'],
@@ -88,7 +89,7 @@ class ClassroomController extends Controller
                 'walas_id' => $data['walas_id'],
                 'updated_at' => now(),
             ]);
-        return redirect()->back()->with('Succes', 'Kelas berhasil diperbarui');
+        return redirect()->back()->with('succes', 'Kelas berhasil diperbarui');
     }
 
     public function destroy($id)
@@ -102,12 +103,12 @@ class ClassroomController extends Controller
             ->exists();
 
         if ($hasStudents || $hasSchedules) {
-            return redirect()->back()->with('Error', 'Kelas tidak bisa dihapus karena masih memiliki siswa atau jadwal aktif');
+            return redirect()->back()->with('error', 'Kelas tidak bisa dihapus karena masih memiliki siswa atau jadwal aktif');
         }
 
-        DB::table('classroom')
-            ->where('id, $id')
+        DB::table('classrooms')
+            ->where('id', $id)
             ->delete();
-        return redirect()->back()->with('Succes', 'Kelas berhasil dihapus');
+        return redirect()->back()->with('succes', 'Kelas berhasil dihapus');
     }
 }

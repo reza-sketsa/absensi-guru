@@ -1,15 +1,459 @@
-body{
-  background:#f5f7fb;
+/* ============================================
+   DESIGN SYSTEM - APLIKASI ABSENSI & PENILAIAN
+   Bootstrap 5 Override | Professional School App
+   ============================================ */
+
+/* --------------------------------------------
+   1. GLOBAL BACKGROUND & BASE
+--------------------------------------------- */
+body {
+  background: #f5f7fb !important;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  padding-bottom: 70px;
 }
-.app-card{
-  border-radius:16px;
+
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 70px;
+  }
 }
-.app-title{
-  color:#0d6efd;
+
+/* Untuk halaman yang tidak butuh bottom nav (misal login) */
+body.no-bottom-nav {
+  padding-bottom: 0;
 }
-.app-muted{
-  color:#6c757d;
+
+/* --------------------------------------------
+   2. SHADOW SYSTEM
+--------------------------------------------- */
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
 }
-.nav-bottom{
-  border-top:1px solid #e5e7eb;
+.shadow {
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+.shadow-md {
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.08),
+    0 4px 6px -4px rgb(0 0 0 / 0.02) !important;
+}
+.shadow-lg {
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.05),
+    0 8px 10px -6px rgb(0 0 0 / 0.02) !important;
+}
+
+/* --------------------------------------------
+   3. BORDER RADIUS KONSISTEN
+--------------------------------------------- */
+.rounded-3 {
+  border-radius: 0.75rem !important;
+}
+.rounded-4 {
+  border-radius: 1rem !important;
+}
+
+/* --------------------------------------------
+   4. CARD dengan HOVER EFFECT (kecuali header)
+--------------------------------------------- */
+.card {
+  transition: all 0.2s ease;
+}
+.card:not(.bg-gradient-header):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px -8px rgb(0 0 0 / 0.15) !important;
+}
+.card:not(.bg-gradient-header):hover .stat-icon {
+  transform: scale(1.05);
+}
+
+/* --------------------------------------------
+   5. GRADIENT HEADER
+--------------------------------------------- */
+.bg-gradient-header {
+  background: #1e3a8a;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+.bg-gradient-header h5,
+.bg-gradient-header p {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* --------------------------------------------
+   6. STAT CARD ANGKA & ICON
+--------------------------------------------- */
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.stat-icon {
+  transition: transform 0.2s ease;
+}
+.card:hover .stat-icon {
+  transform: scale(1.05);
+}
+
+/* --------------------------------------------
+   7. TABLE HEADER
+--------------------------------------------- */
+.table thead th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  background-color: #f8fafc;
+  border-bottom-width: 1px;
+  border-bottom-color: #e2e8f0;
+}
+.table-hover tbody tr:hover {
+  background-color: #f1f5f9 !important;
+  transition: background-color 0.15s ease;
+}
+
+/* --------------------------------------------
+   8. BADGE
+--------------------------------------------- */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.75em;
+  letter-spacing: -0.01em;
+}
+.badge.bg-success-subtle {
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
+}
+.badge.bg-danger-subtle {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+}
+.badge.bg-warning-subtle {
+  background-color: #fef9c3 !important;
+  color: #854d0e !important;
+}
+.badge.bg-secondary-subtle {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+/* --------------------------------------------
+   9. PROGRESS BAR
+--------------------------------------------- */
+.progress {
+  background-color: #f1f5f9;
+  border-radius: 999px;
+}
+.progress-bar {
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* --------------------------------------------
+   10. BUTTON di HEADER GRADIENT
+--------------------------------------------- */
+.btn-outline-light {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  transition: all 0.2s ease;
+}
+.btn-outline-light:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+.btn-light {
+  background-color: white;
+  border-color: white;
+  color: #1e3a8a;
+  font-weight: 500;
+}
+.btn-light:hover {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------
+   11. DROPDOWN MENU
+--------------------------------------------- */
+.dropdown-menu {
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.05);
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  min-width: 200px;
+}
+.dropdown-item {
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+.dropdown-item:hover {
+  background-color: #f1f5f9;
+  transform: translateX(4px);
+}
+.dropdown-item:active {
+  background-color: #3b82f6;
+  color: white;
+}
+.dropdown-header {
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.25rem;
+  color: #64748b;
+}
+.dropdown-divider {
+  margin: 0.25rem 0;
+  border-top-color: #e2e8f0;
+}
+.dropdown-item i {
+  width: 1.25rem;
+  display: inline-block;
+}
+.dropdown-item.text-danger:hover {
+  background-color: #fef2f2;
+  color: #dc2626 !important;
+}
+.dropdown-item.text-danger:hover i {
+  color: #dc2626;
+}
+
+/* --------------------------------------------
+   12. SELECT DROPDOWN
+--------------------------------------------- */
+.form-select-sm {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 14px;
+  padding-right: 2rem;
+}
+.form-select-sm:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.form-select-sm:focus {
+  border-color: white;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+.form-select-sm option {
+  background-color: white;
+  color: #1e293b;
+}
+select.form-select,
+select.form-select-sm,
+select.form-select-lg {
+  transform: none !important;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease !important;
+}
+select.form-select:hover,
+select.form-select-sm:hover,
+select.form-select-lg:hover {
+  transform: none !important;
+  translate: none !important;
+}
+
+/* --------------------------------------------
+   13. UTILITY CLASSES
+--------------------------------------------- */
+.card-custom {
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+}
+.title-primary {
+  color: #0d6efd;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.text-muted-custom {
+  color: #6c757d !important;
+  font-size: 0.875rem;
+}
+
+/* --------------------------------------------
+   14. FORM COMPONENTS
+--------------------------------------------- */
+.form-label {
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+.form-control,
+.form-select {
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.input-group .btn-outline-secondary {
+  border-color: #e2e8f0;
+  background-color: white;
+}
+.input-group .btn-outline-secondary:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+.form-text {
+  font-size: 0.7rem;
+  margin-top: 0.25rem;
+  color: #64748b;
+}
+.alert-danger {
+  border: none;
+  background-color: #fef2f2;
+  color: #991b1b;
+}
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #dc2626;
+  background-image: none;
+}
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* --------------------------------------------
+   15. LIST GROUP ITEM
+--------------------------------------------- */
+.list-group-item {
+  border-color: #e2e8f0;
+  transition: all 0.2s ease;
+}
+.list-group-item-action {
+  transition: all 0.2s ease;
+}
+.list-group-item-action:hover {
+  background-color: #f8fafc;
+  transform: translateX(4px);
+  border-left: 3px solid #3b82f6;
+}
+.list-group-flush .list-group-item:first-child {
+  border-top: none;
+}
+.list-group-flush .list-group-item:last-child {
+  border-bottom: none;
+}
+
+/* --------------------------------------------
+   16. FOOTER STYLES
+--------------------------------------------- */
+footer {
+  border-top: 1px solid #e2e8f0 !important;
+}
+.footer-link {
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.footer-link:hover {
+  color: #3b82f6;
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------
+   17. NAVBAR & BOTTOM NAVIGATION
+--------------------------------------------- */
+.navbar {
+  height: 65px;
+}
+.navbar.bg-white {
+  border-bottom: 1px solid #e2e8f0;
+}
+.navbar.fixed-bottom {
+  border-top: 1px solid #e2e8f0;
+  background-color: white !important;
+  padding: 0.25rem 0;
+}
+.navbar.fixed-bottom .nav-link {
+  transition: all 0.2s ease;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0 !important;
+}
+.navbar.fixed-bottom .nav-link:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-2px);
+}
+.navbar.fixed-bottom .nav-link.text-primary {
+  font-weight: 500;
+}
+
+/* Desktop: bottom nav lebih kecil */
+@media (min-width: 768px) {
+  .navbar.fixed-bottom {
+    padding: 0.15rem 0;
+  }
+  .navbar.fixed-bottom .nav-link {
+    padding: 0.35rem 0 !important;
+  }
+  .navbar.fixed-bottom .nav-link i {
+    font-size: 1.1rem;
+  }
+}
+
+/* --------------------------------------------
+   18. RESPONSIVE (Mobile)
+--------------------------------------------- */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .card-body {
+    padding: 1rem !important;
+  }
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  .dropdown-menu {
+    min-width: 180px;
+  }
+  .btn-group {
+    width: 100%;
+  }
+  .btn-group .btn {
+    flex: 1;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+  }
+  footer .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }

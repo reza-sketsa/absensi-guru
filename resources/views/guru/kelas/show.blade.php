@@ -1,57 +1,78 @@
 @extends('layouts.app')
 
+@section('title', 'Daftar Siswa - Kelas ' . $classroom->tingkat . '-' . $classroom->paralel)
+
 @section('content')
-    <div class="container py-3 mb-5">
-        <div class="card border-0 shadow-sm bg-primary text-white mb-4">
-            <div class="card-body p-4">
+    <div class="container py-4">
+
+        {{-- Header Gradient --}}
+        <div class="card border-0 rounded-4 mb-4 bg-gradient-header shadow-md">
+            <div class="card-body px-4 py-4">
                 <div class="d-flex align-items-center gap-3">
-                    <a href="{{ route('guru.kelas.index') }}" class="btn btn-outline-light border-0 btn-sm">
+                    <a href="{{ route('guru.kelas.index') }}" class="btn btn-outline-light border-0 btn-sm p-1 lh-1">
                         <i class="bi bi-arrow-left fs-4"></i>
                     </a>
                     <div>
-                        <h5 class="fw-bold mb-1">Kelas {{ $classroom->tingkat }}-{{ $classroom->paralel }}</h5>
-                        <p class="mb-0 opacity-75 small">{{ $classroom->students->count() }} Siswa terdaftar</p>
+                        <h5 class="fw-bold mb-1 text-white">Kelas {{ $classroom->tingkat }}-{{ $classroom->paralel }}</h5>
+                        <p class="mb-0 text-white opacity-75 small">{{ $classroom->students->count() }} Siswa terdaftar</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mb-3">
-            <input type="text" id="searchSiswaGuru" class="form-control" placeholder="Cari nama siswa...">
+        {{-- Search --}}
+        <div class="mb-4">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" id="searchSiswaGuru" class="form-control border-start-0"
+                    placeholder="Cari nama siswa...">
+            </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow rounded-3 overflow-hidden">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
                             <tr>
-                                <th class="ps-3">No</th>
-                                <th>Nama Lengkap</th>
-                                <th class="text-center">Aksi</th>
+                                <th class="ps-4 py-3 text-muted small fw-semibold" width="60">NO</th>
+                                <th class="py-3 text-muted small fw-semibold">NAMA SISWA</th>
+                                <th class="py-3 text-center text-muted small fw-semibold pe-4">AKSI</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($classroom->students as $index => $student)
+                            @forelse ($classroom->students as $index => $student)
                                 <tr>
-                                    <td class="ps-3">{{ $index + 1 }}</td>
-                                    <td class="fw-medium">{{ $student->nama }}</td>
-                                    <td class="text-center">
+                                    <td class="ps-4 text-muted small">{{ $index + 1 }}</td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ $student->nama }}</div>
+                                        <small class="text-muted">NIS: {{ $student->nis }}</small>
+                                    </td>
+                                    <td class="text-center pe-4">
                                         <a href="{{ route('guru.siswa.detail', $student->id) }}"
-                                            class="btn btn-sm btn-outline-info">
-                                            <i class="bi bi-person-badge"></i> Profil Absensi
+                                            class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-person-badge me-1"></i> Profil Absensi
                                         </a>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted small">
+                                        <i class="bi bi-inbox display-6 d-block mb-2 opacity-50"></i>
+                                        Belum ada siswa di kelas ini.
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-
-    @push('scripts')
-        @include('components.scripts')
-    @endpush
 @endsection
+
+@push('scripts')
+    @include('components.scripts')
+@endpush

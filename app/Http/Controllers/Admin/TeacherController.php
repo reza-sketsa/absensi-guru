@@ -6,18 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\TeacherRequest;
 use App\Models\Teacher;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
+
 class TeacherController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $teachers = Teacher::with('user')
-            ->orderBy('nama_guru', 'asc')
-            ->get();
+        $search = $request->input('search');
 
-        return view('admin.guru.index', compact('teachers'));
+        $teachers = Teacher::with('user')
+            ->when($search, function ($query, $search) {
+                $query->where('nama_guru', 'like', "%{$search}%")
+                    ->orWhere('nip', 'like', "%{$search}%");
+            })
+            ->orderBy('nama_guru', 'asc')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.guru.index', compact('teachers', 'search'));
     }
 
     public function create()

@@ -1,26 +1,30 @@
 @extends('layouts.app')
 
+@section('title', 'Tambah Penilaian - ' . $schedule->subject->nama_mapel)
+
 @section('content')
-    <div class="container py-3 mb-5">
-        <div class="card border-0 shadow-sm bg-primary text-white mb-4">
-            <div class="card-body p-4">
+    <div class="container py-4">
+
+        {{-- Header Gradient --}}
+        <div class="card border-0 rounded-4 mb-4 bg-gradient-header shadow-md">
+            <div class="card-body px-4 py-4">
                 <div class="d-flex align-items-center gap-3">
-                    <a href="{{ route('guru.penilaian.index') }}" class="btn btn-outline-light border-0 btn-sm">
+                    <a href="{{ route('guru.penilaian.index') }}" class="btn btn-outline-light border-0 btn-sm p-1 lh-1">
                         <i class="bi bi-arrow-left fs-4"></i>
                     </a>
                     <div>
-                        <h5 class="fw-bold mb-1">{{ $schedule->subject->nama_mapel }}</h5>
-                        <p class="mb-0 opacity-75 small">
+                        <h5 class="fw-bold mb-1 text-white">{{ $schedule->subject->nama_mapel }}</h5>
+                        <p class="mb-0 text-white opacity-75 small">
                             <i class="bi bi-door-open me-1"></i>
-                            Kelas: {{ $schedule->classroom->tingkat }}-{{ $schedule->classroom->paralel }}
+                            Kelas {{ $schedule->classroom->tingkat }}-{{ $schedule->classroom->paralel }}
                         </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
+        <div class="card border-0 shadow rounded-3">
+            <div class="card-body p-4">
                 <form action="{{ route('guru.evaluations.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="schedule_id" value="{{ $schedule->id }}">
@@ -28,45 +32,50 @@
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
-                            <label class="small fw-bold">Jenis Penilaian</label>
+                            <label class="form-label fw-semibold small">Jenis Penilaian</label>
                             <select name="jenis" class="form-select" required>
                                 <option value="Tugas">Tugas</option>
-                                <option value="UH">UH</option>
+                                <option value="UH">Ulangan Harian (UH)</option>
                                 <option value="UTS">UTS</option>
                                 <option value="UAS">UAS</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="small fw-bold">Nama Penilaian (Contoh: UH 1)</label>
+                            <label class="form-label fw-semibold small">Nama Penilaian</label>
                             <input type="text" name="nama_penilaian" class="form-control" required
-                                placeholder="Misal: Tugas Aljabar">
+                                placeholder="Contoh: UH 1, Tugas Aljabar">
+                            <div class="form-text small text-muted">Contoh: UH 1, Tugas Aljabar</div>
                         </div>
                         <div class="col-md-4">
-                            <label class="small fw-bold">Tanggal</label>
+                            <label class="form-label fw-semibold small">Tanggal</label>
                             <input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
                         </div>
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="table-light">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <th width="50">No</th>
-                                    <th>Nama Siswa</th>
-                                    <th width="150">Nilai (0-100)</th>
+                                    <th class="ps-3 py-3 text-muted small fw-semibold" width="60">NO</th>
+                                    <th class="py-3 text-muted small fw-semibold">NAMA SISWA</th>
+                                    <th class="py-3 text-center text-muted small fw-semibold pe-3" width="180">NILAI
+                                        (0-100)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($students as $index => $student)
                                     <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td class="fw-bold small">{{ $student->nama }}</td>
+                                        <td class="ps-3 text-muted small">{{ $index + 1 }}</td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">{{ $student->nama }}</div>
+                                            <small class="text-muted">NIS: {{ $student->nis }}</small>
+                                        </td>
                                         <td>
                                             <input type="hidden" name="penilaian[{{ $student->id }}][student_id]"
                                                 value="{{ $student->id }}">
                                             <input type="number" name="penilaian[{{ $student->id }}][nilai]"
-                                                class="form-control form-control-sm text-center" min="0"
-                                                max="100" step="0.01" placeholder="-">
+                                                class="form-control text-center" min="0" max="100"
+                                                step="1" placeholder="Nilai" style="width: 120px; margin: 0 auto;">
                                         </td>
                                     </tr>
                                 @endforeach
@@ -74,8 +83,13 @@
                         </table>
                     </div>
 
-                    <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-primary">Simpan Semua Nilai</button>
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ route('guru.penilaian.index') }}" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-x-circle me-1"></i>Batal
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i>Simpan Semua Nilai
+                        </button>
                     </div>
                 </form>
             </div>
