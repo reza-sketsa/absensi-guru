@@ -23,7 +23,7 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow rounded-3">
+        <div class="card border-0 shadow rounded-3 no-hover">
             <div class="card-body p-4">
                 <form action="{{ route('guru.evaluations.store') }}" method="POST">
                     @csrf

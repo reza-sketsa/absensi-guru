@@ -84,40 +84,98 @@ class AttendanceController extends Controller
         return view('guru.absensi.input-absen', compact('schedule', 'students'));
     }
 
-    public function showStudent($id)
+    public function showStudent(Request $request, $id)
     {
         $teacherId = $this->getTeacherId();
-        $student   = Student::with('classroom')->findOrFail($id);
+        $student   = Student::with([
+            'classroom:id,tingkat,paralel',
+        ])->findOrFail($id);
 
-        $allYears = AcademicYear::orderBy('id', 'desc')->get();
-
-        $selectedYearId = request('academic_year_id');
-        $selectedYear = $selectedYearId
-            ? AcademicYear::find($selectedYearId)
+        $allYears     = AcademicYear::orderBy('id', 'desc')->get();
+        $selectedYear = $request->filled('academic_year_id')
+            ? AcademicYear::find($request->get('academic_year_id'))
             : AcademicYear::where('is_active', true)->first();
 
+        $statusFilter = $request->get('status'); // null = semua
+
+        // Query utama — eager load semua relasi yang dibutuhkan blade
         $attendanceHistory = AttendanceDetail::where('student_id', $id)
             ->whereHas('attendance', function ($q) use ($selectedYear) {
                 if ($selectedYear) $q->where('academic_year_id', $selectedYear->id);
             })
             ->whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))
-            ->with('attendance')
+            ->when($statusFilter, fn($q) => $q->where('status', $statusFilter))
+            ->with([
+                'attendance:id,tanggal,schedule_id,academic_year_id',
+                'attendance.schedule:id,subject_id,classroom_id,jam_mulai,jam_habis',
+                'attendance.schedule.subject:id,nama_mapel',
+                'attendance.schedule.classroom:id,tingkat,paralel',
+            ])
             ->orderByDesc(
                 DB::table('attendances')
                     ->select('tanggal')
                     ->whereColumn('attendances.id', 'attendance_details.attendance_id')
                     ->limit(1)
             )
-            ->get();
+            ->paginate(15)
+            ->withQueryString(); // pertahankan ?status=, ?academic_year_id=
+
+        // Summary selalu dari semua data tanpa filter status
+        $summaryRaw = AttendanceDetail::where('student_id', $id)
+            ->whereHas('attendance', function ($q) use ($selectedYear) {
+                if ($selectedYear) $q->where('academic_year_id', $selectedYear->id);
+            })
+            ->whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))
+            ->select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
 
         $summary = [
-            'Hadir' => $attendanceHistory->where('status', 'Hadir')->count(),
-            'Sakit' => $attendanceHistory->where('status', 'Sakit')->count(),
-            'Izin'  => $attendanceHistory->where('status', 'Izin')->count(),
-            'Alpa'  => $attendanceHistory->where('status', 'Alpa')->count(),
+            'Hadir' => $summaryRaw['Hadir'] ?? 0,
+            'Izin'  => $summaryRaw['Izin']  ?? 0,
+            'Sakit' => $summaryRaw['Sakit'] ?? 0,
+            'Alpa'  => $summaryRaw['Alpa']  ?? 0,
         ];
 
-        return view('guru.absensi.student-detail', compact('student', 'attendanceHistory', 'summary', 'allYears', 'selectedYear'));
+        // Kalkulasi insight — pindah dari blade
+        $totalSemua     = array_sum($summary);
+        $persenHadir    = $totalSemua > 0 ? round(($summary['Hadir'] / $totalSemua) * 100) : 0;
+        $persenColor    = $persenHadir >= 80 ? 'success' : ($persenHadir >= 60 ? 'warning' : 'danger');
+
+        $insightText  = match (true) {
+            $persenHadir >= 90 => 'Kehadiran sangat baik',
+            $persenHadir >= 75 => 'Kehadiran cukup stabil',
+            $persenHadir >= 60 => 'Perlu perhatian',
+            default            => 'Kehadiran bermasalah',
+        };
+        $insightColor = match (true) {
+            $persenHadir >= 90 => 'success',
+            $persenHadir >= 75 => 'primary',
+            $persenHadir >= 60 => 'warning',
+            default            => 'danger',
+        };
+
+        // Badge status dominan
+        $statusDominan      = $summary['Hadir'] > ($totalSemua / 2) ? 'disiplin' : 'perhatian';
+        $statusDominanColor = $statusDominan === 'disiplin' ? 'success' : 'danger';
+        $statusDominanLabel = $statusDominan === 'disiplin' ? 'Siswa Disiplin' : 'Perlu Perhatian';
+
+        return view('guru.absensi.student-detail', compact(
+            'student',
+            'attendanceHistory',
+            'summary',
+            'allYears',
+            'selectedYear',
+            'statusFilter',
+            'totalSemua',
+            'persenHadir',
+            'persenColor',
+            'insightText',
+            'insightColor',
+            'statusDominanColor',
+            'statusDominanLabel',
+        ));
     }
 
     public function editAbsensi($schedule_id)

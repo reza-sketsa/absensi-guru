@@ -216,76 +216,144 @@
         });
     }
 
-    // =====================
-    // CHART DASHBOARD ADMIN (Bar Chart)
-    // =====================
-    const trendChartCanvas = document.getElementById('trendChart');
-    if (trendChartCanvas && trendChartCanvas.dataset.labels) {
-        try {
-            const labels = JSON.parse(trendChartCanvas.dataset.labels || '[]');
-            const chartData = JSON.parse(trendChartCanvas.dataset.data || '[]');
+    /* =========================================
+   ADMIN DASHBOARD TREND CHART
+========================================= */
 
-            if (labels.length > 0 && chartData.length > 0) {
-                new Chart(trendChartCanvas, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Guru yang Absen',
-                            data: chartData,
-                            backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                            borderColor: 'rgba(59, 130, 246, 0.8)',
-                            borderWidth: 2,
-                            borderRadius: 8,
-                            barPercentage: 0.65,
-                            categoryPercentage: 0.8
-                        }]
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const trendChartCanvas = document.getElementById('trendChart');
+
+        if (!trendChartCanvas) return;
+
+        try {
+
+            const labels = JSON.parse(
+                trendChartCanvas.dataset.labels || '[]'
+            );
+
+            const chartData = JSON.parse(
+                trendChartCanvas.dataset.data || '[]'
+            );
+
+            /* ================================
+               EMPTY STATE
+            ================================= */
+
+            if (labels.length === 0 || chartData.length === 0) {
+
+                trendChartCanvas.parentElement.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="bi bi-bar-chart-steps display-1 text-muted opacity-25"></i>
+
+                    <p class="text-muted mt-3 mb-0">
+                        Belum ada data untuk periode ini.
+                    </p>
+                </div>
+            `;
+
+                return;
+            }
+
+            /* ================================
+               CHART INIT
+            ================================= */
+
+            new Chart(trendChartCanvas, {
+                type: 'bar',
+
+                data: {
+                    labels: labels,
+
+                    datasets: [{
+                        label: 'Guru yang Absen',
+
+                        data: chartData,
+
+                        backgroundColor: 'rgba(13, 110, 253, 0.12)',
+
+                        borderColor: 'rgba(13, 110, 253, 0.8)',
+
+                        borderWidth: 2,
+
+                        borderRadius: 8,
+
+                        barPercentage: 0.65,
+
+                        categoryPercentage: 0.8,
+                    }]
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+                            display: false
+                        },
+
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+
+                            titleColor: '#f8fafc',
+
+                            bodyColor: '#cbd5e1',
+
+                            padding: 10,
+
+                            cornerRadius: 10,
+                        }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero: true,
+
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
                             },
-                            tooltip: {
-                                backgroundColor: '#1e293b',
-                                titleColor: '#f1f5f9',
-                                bodyColor: '#cbd5e1',
-                                padding: 8,
-                                cornerRadius: 8
+
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)',
+                                drawBorder: false
                             }
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 1,
-                                    precision: 0
-                                },
-                                grid: {
-                                    color: 'rgba(0,0,0,0.05)',
-                                    drawBorder: false
-                                }
+
+                        x: {
+
+                            grid: {
+                                display: false
                             },
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    maxRotation: 45,
-                                    minRotation: 45
-                                }
+
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
                             }
                         }
                     }
-                });
-            } else {
-                trendChartCanvas.parentElement.innerHTML =
-                    '<div class="text-center py-5"><i class="bi bi-bar-chart-steps display-1 text-muted opacity-25"></i><p class="text-muted mt-2">Belum ada data untuk periode ini.</p></div>';
-            }
-        } catch (e) {
-            console.error('Trend chart error:', e);
+                }
+            });
+
+        } catch (error) {
+
+            console.error('Trend chart error:', error);
+
+            trendChartCanvas.parentElement.innerHTML = `
+            <div class="text-center py-5">
+                <i class="bi bi-exclamation-circle display-1 text-danger opacity-25"></i>
+
+                <p class="text-danger mt-3 mb-0">
+                    Gagal memuat chart.
+                </p>
+            </div>
+        `;
         }
-    }
+    });
 </script>

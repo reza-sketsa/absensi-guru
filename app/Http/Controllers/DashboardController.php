@@ -54,52 +54,59 @@ class DashboardController extends Controller
         $filter    = $request->get('filter', 'weekly');
         [$startDate, $endDate] = $this->getDateRange($filter);
 
-        $allYears   = AcademicYear::orderBy('id', 'desc')->get();
-        $activeYear = AcademicYear::where('is_active', true)->first();
-
-        $selectedYearId = $request->get('academic_year_id');
-        $selectedYear   = $selectedYearId
-            ? AcademicYear::find($selectedYearId)
+        // Tahun akademik
+        $allYears     = AcademicYear::orderBy('id', 'desc')->get();
+        $activeYear   = AcademicYear::where('is_active', true)->first();
+        $selectedYear = $request->filled('academic_year_id')
+            ? AcademicYear::find($request->get('academic_year_id'))
             : $activeYear;
-
         $isActiveYear = $selectedYear && $activeYear && $selectedYear->id === $activeYear->id;
 
-        $query = AttendanceDetail::whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))
-            ->whereHas('attendance', function ($q) use ($startDate, $endDate, $selectedYear) {
-                $q->whereBetween('tanggal', [$startDate, $endDate]);
-                if ($selectedYear) $q->where('academic_year_id', $selectedYear->id);
-            });
+        // Base condition reusable — hindari duplikasi closure
+        $attendanceFilter = function ($q) use ($startDate, $endDate, $selectedYear) {
+            $q->whereBetween('tanggal', [$startDate, $endDate]);
+            if ($selectedYear) $q->where('academic_year_id', $selectedYear->id);
+        };
 
-        $rawStats = $query->select('status', DB::raw('count(*) as total'))
+        // Stats absensi
+        $rawStats = AttendanceDetail::whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))
+            ->whereHas('attendance', $attendanceFilter)
+            ->select('status', DB::raw('count(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status')
             ->toArray();
 
         $stats = [
             'hadir' => $rawStats['Hadir'] ?? 0,
-            'izin'  => $rawStats['Izin'] ?? 0,
+            'izin'  => $rawStats['Izin']  ?? 0,
             'sakit' => $rawStats['Sakit'] ?? 0,
-            'alpa'  => $rawStats['Alpa'] ?? 0,
+            'alpa'  => $rawStats['Alpa']  ?? 0,
         ];
 
+        // Kalkulasi global — pindah dari blade ke sini
+        $totalSemua   = array_sum($stats);
+        $persenGlobal = $totalSemua > 0 ? round(($stats['hadir'] / $totalSemua) * 100) : 0;
+        $persenColor  = $persenGlobal >= 80 ? 'success' : ($persenGlobal >= 60 ? 'warning' : 'danger');
+
+        // Siswa alpa tertinggi
         $lowAttendanceStudents = AttendanceDetail::whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))
             ->whereIn('status', ['Alpa', 'Sakit', 'Izin'])
-            ->whereHas('attendance', function ($q) use ($startDate, $endDate, $selectedYear) {
-                $q->whereBetween('tanggal', [$startDate, $endDate]);
-                if ($selectedYear) $q->where('academic_year_id', $selectedYear->id);
-            })
+            ->whereHas('attendance', $attendanceFilter)
             ->select(
                 'student_id',
                 DB::raw('count(*) as total_tidak_hadir'),
                 DB::raw("SUM(CASE WHEN status = 'Alpa' THEN 1 ELSE 0 END) as total_alpa")
             )
-            ->with('student:id,nama,classroom_id')
-            ->with('student.classroom')
+            ->with([
+                'student:id,nama,classroom_id',
+                'student.classroom:id,tingkat,paralel',
+            ])
             ->groupBy('student_id')
             ->orderByDesc('total_alpa')
             ->take(5)
             ->get();
 
+        // Rekap per kelas
         $rekapKelas = DB::table('classrooms')
             ->join('schedules', 'schedules.classroom_id', '=', 'classrooms.id')
             ->join('attendances', 'attendances.schedule_id', '=', 'schedules.id')
@@ -109,23 +116,65 @@ class DashboardController extends Controller
             ->when($selectedYear, fn($q) => $q->where('attendances.academic_year_id', $selectedYear->id))
             ->selectRaw("
             classrooms.id as classroom_id,
+            classrooms.tingkat,
+            classrooms.paralel,
             CONCAT(classrooms.tingkat, '-', classrooms.paralel) as nama_kelas,
             SUM(CASE WHEN attendance_details.status = 'Hadir' THEN 1 ELSE 0 END) as hadir,
-            SUM(CASE WHEN attendance_details.status = 'Izin' THEN 1 ELSE 0 END) as izin,
+            SUM(CASE WHEN attendance_details.status = 'Izin'  THEN 1 ELSE 0 END) as izin,
             SUM(CASE WHEN attendance_details.status = 'Sakit' THEN 1 ELSE 0 END) as sakit,
-            SUM(CASE WHEN attendance_details.status = 'Alpa' THEN 1 ELSE 0 END) as alpa
+            SUM(CASE WHEN attendance_details.status = 'Alpa'  THEN 1 ELSE 0 END) as alpa
         ")
             ->groupBy('classrooms.id', 'classrooms.tingkat', 'classrooms.paralel')
+            ->get()
+            ->map(function ($rk) {
+                $total = $rk->hadir + $rk->izin + $rk->sakit + $rk->alpa;
+                $rk->total    = $total;
+                $rk->persen   = $total > 0 ? round(($rk->hadir / $total) * 100) : 0;
+                $rk->color    = $rk->persen >= 80 ? 'success' : ($rk->persen >= 50 ? 'warning' : 'danger');
+                return $rk;
+            });
+
+        // Kelas bermasalah — pindah dari blade
+        $kelasTermburuk = $rekapKelas->sortBy('persen')->first();
+
+        // Jadwal hari ini
+        $hariIni       = Carbon::now()->locale('id')->dayName;
+        $jadwalHariIni = Schedule::with(['subject:id,nama_mapel', 'classroom:id,tingkat,paralel'])
+            ->where('teacher_id', $teacherId)
+            ->where('hari', $hariIni)
+            ->orderBy('jam_mulai', 'asc')
             ->get();
+
+        // Totals
+        $totalKelas = Schedule::where('teacher_id', $teacherId)
+            ->distinct('classroom_id')
+            ->count('classroom_id');
+
+        $totalSiswa = DB::table('students')
+            ->whereIn('classroom_id', function ($q) use ($teacherId) {
+                $q->select('classroom_id')
+                    ->from('schedules')
+                    ->where('teacher_id', $teacherId)
+                    ->distinct();
+            })
+            ->whereNull('deleted_at')
+            ->count();
 
         return view('guru.dashboard', compact(
             'stats',
             'filter',
             'lowAttendanceStudents',
             'rekapKelas',
+            'kelasTermburuk',
             'allYears',
             'selectedYear',
-            'isActiveYear'
+            'isActiveYear',
+            'jadwalHariIni',
+            'totalKelas',
+            'totalSiswa',
+            'totalSemua',
+            'persenGlobal',
+            'persenColor',
         ));
     }
 

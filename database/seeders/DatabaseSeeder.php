@@ -11,476 +11,536 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // =========================
-        // 1. SCHOOL
-        // =========================
-        DB::table('schools')->insertOrIgnore([
-            'id'           => 1,
-            'nama_sekolah' => 'SMPN 1 KOTABARU',
-            'alamat'       => 'Jl. Sampel No. 1',
-            'no_telp'      => '081234567890',
-            'email'        => 'smpn1ktb@gmail.com',
-            'created_at'   => now(),
-            'updated_at'   => now(),
-        ]);
+        DB::transaction(function () {
 
-        // =========================
-        // 2. ACADEMIC YEAR
-        // =========================
-        $existing = DB::table('academic_years')
-            ->where('tahun', '2025/2026')
-            ->where('semester', 'Genap')
-            ->first();
+            /*
+            |--------------------------------------------------------------------------
+            | 1. SCHOOL
+            |--------------------------------------------------------------------------
+            */
 
-        $academicYearId = $existing
-            ? $existing->id
-            : DB::table('academic_years')->insertGetId([
-                'tahun'      => '2025/2026',
-                'semester'   => 'Genap',
-                'is_active'  => true,
+            DB::table('schools')->insertOrIgnore([
+                'id'           => 1,
+                'nama_sekolah' => 'SMPN 1 KOTABARU',
+                'alamat'       => 'Jl. Sampel No. 1',
+                'no_telp'      => '081234567890',
+                'email'        => 'smpn1ktb@gmail.com',
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | 2. ACADEMIC YEARS
+            |--------------------------------------------------------------------------
+            */
+
+            $tahunAjaran = [
+                ['tahun' => '2024/2025', 'semester' => 'Ganjil', 'is_active' => false],
+                ['tahun' => '2024/2025', 'semester' => 'Genap',  'is_active' => false],
+                ['tahun' => '2025/2026', 'semester' => 'Ganjil', 'is_active' => false],
+                ['tahun' => '2025/2026', 'semester' => 'Genap',  'is_active' => true],
+            ];
+
+            $academicYears = [];
+
+            foreach ($tahunAjaran as $ta) {
+
+                $existing = DB::table('academic_years')
+                    ->where('tahun', $ta['tahun'])
+                    ->where('semester', $ta['semester'])
+                    ->first();
+
+                if ($existing) {
+                    $academicYears[] = $existing;
+                } else {
+
+                    $id = DB::table('academic_years')->insertGetId([
+                        'tahun'      => $ta['tahun'],
+                        'semester'   => $ta['semester'],
+                        'is_active'  => $ta['is_active'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    $academicYears[] = (object)[
+                        'id'        => $id,
+                        'tahun'     => $ta['tahun'],
+                        'semester'  => $ta['semester'],
+                        'is_active' => $ta['is_active'],
+                    ];
+                }
+            }
+
+            $activeYear = collect($academicYears)->firstWhere('is_active', true);
+
+            /*
+            |--------------------------------------------------------------------------
+            | 3. ADMIN
+            |--------------------------------------------------------------------------
+            */
+
+            DB::table('users')->insertOrIgnore([
+                'username'   => 'admin',
+                'password'   => Hash::make('admin123'),
+                'role'       => 'Admin',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-        $academicYearSemester = $existing ? $existing->semester : 'Genap';
+            /*
+            |--------------------------------------------------------------------------
+            | 4. TEACHERS
+            |--------------------------------------------------------------------------
+            */
 
-        // =========================
-        // 3. ADMIN USER
-        // =========================
-        DB::table('users')->insertOrIgnore([
-            'username'   => 'admin',
-            'password'   => Hash::make('admin123'),
-            'role'       => 'Admin',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+            $namaDepanLaki = [
+                'Ahmad',
+                'Budi',
+                'Dian',
+                'Eko',
+                'Fajar',
+                'Gilang',
+                'Hendra',
+                'Ivan',
+                'Joko',
+                'Kevin',
+                'Luthfi',
+                'Maulana',
+                'Nanda',
+                'Omar',
+                'Putra',
+                'Reza',
+                'Sandi',
+                'Taufik',
+                'Umar',
+                'Vino',
+                'Wahyu',
+                'Yudi',
+                'Zainal',
+                'Arif',
+                'Bagas'
+            ];
 
-        // =========================
-        // 4. 50 GURU + USER
-        // =========================
-        $namaDepanLaki = [
-            'Ahmad',
-            'Budi',
-            'Dian',
-            'Eko',
-            'Fajar',
-            'Gilang',
-            'Hendra',
-            'Ivan',
-            'Joko',
-            'Kevin',
-            'Luthfi',
-            'Maulana',
-            'Nanda',
-            'Omar',
-            'Putra',
-            'Reza',
-            'Sandi',
-            'Taufik',
-            'Umar',
-            'Vino',
-            'Wahyu',
-            'Yudi',
-            'Zainal',
-            'Arif',
-            'Bagas'
-        ];
-        $namaDepanPerempuan = [
-            'Aini',
-            'Bunga',
-            'Citra',
-            'Desi',
-            'Ella',
-            'Fani',
-            'Gita',
-            'Hana',
-            'Indah',
-            'Julia',
-            'Kiki',
-            'Lisa',
-            'Maya',
-            'Nisa',
-            'Putri',
-            'Rani',
-            'Sari',
-            'Tari',
-            'Umi',
-            'Vivi',
-            'Wati',
-            'Yuni',
-            'Zara',
-            'Anisa',
-            'Bella'
-        ];
-        $namaBelakang = [
-            'Santoso',
-            'Rahayu',
-            'Fauzi',
-            'Lestari',
-            'Pratama',
-            'Aini',
-            'Hidayat',
-            'Susanto',
-            'Wijaya',
-            'Kurniawan',
-            'Setiawan',
-            'Nugroho',
-            'Purnama',
-            'Saputra',
-            'Handoko',
-            'Wibowo',
-            'Suryanto',
-            'Gunawan',
-            'Hartono',
-            'Siregar'
-        ];
-        $gelar     = ['S.Pd', 'M.Pd', 'S.Pd.I', 'M.Pd.I', 'S.Pd', 'S.Pd'];
-        $agamaList = ['Islam', 'Islam', 'Islam', 'Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha'];
+            $namaDepanPerempuan = [
+                'Aini',
+                'Bunga',
+                'Citra',
+                'Desi',
+                'Ella',
+                'Fani',
+                'Gita',
+                'Hana',
+                'Indah',
+                'Julia',
+                'Kiki',
+                'Lisa',
+                'Maya',
+                'Nisa',
+                'Putri',
+                'Rani',
+                'Sari',
+                'Tari',
+                'Umi',
+                'Vivi',
+                'Wati',
+                'Yuni',
+                'Zara',
+                'Anisa',
+                'Bella'
+            ];
 
-        $teacherIds = [];
+            $namaBelakang = [
+                'Santoso',
+                'Rahayu',
+                'Fauzi',
+                'Lestari',
+                'Pratama',
+                'Aini',
+                'Hidayat',
+                'Susanto',
+                'Wijaya',
+                'Kurniawan',
+                'Setiawan',
+                'Nugroho',
+                'Purnama',
+                'Saputra',
+                'Handoko',
+                'Wibowo',
+                'Suryanto',
+                'Gunawan',
+                'Hartono',
+                'Siregar'
+            ];
 
-        for ($i = 0; $i < 50; $i++) {
-            $jk        = $i % 2 === 0 ? 'L' : 'P';
-            $namaDepan = $jk === 'L'
-                ? $namaDepanLaki[$i % count($namaDepanLaki)]
-                : $namaDepanPerempuan[$i % count($namaDepanPerempuan)];
-            $belakang  = $namaBelakang[$i % count($namaBelakang)];
-            $namaGuru  = $namaDepan . ' ' . $belakang . ', ' . $gelar[$i % count($gelar)];
-            $username  = strtolower(str_replace(' ', '', $namaDepan) . '.' . str_replace(' ', '', $belakang) . ($i + 1));
+            $gelar     = ['S.Pd', 'M.Pd', 'S.Pd.I', 'M.Pd.I'];
+            $agamaList = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha'];
 
-            $existingUser = DB::table('users')->where('username', $username)->first();
-            if ($existingUser) {
-                $userId = $existingUser->id;
-            } else {
-                $userId = DB::table('users')->insertGetId([
-                    'username'   => $username,
-                    'password'   => Hash::make('guru123'),
-                    'role'       => 'Guru',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
+            $teacherIds = [];
 
-            $existingTeacher = DB::table('teachers')->where('user_id', $userId)->first();
-            if ($existingTeacher) {
-                $teacherIds[] = $existingTeacher->id;
-            } else {
-                $nip = '19' . rand(70, 99) . str_pad(rand(1, 9), 2, '0', STR_PAD_LEFT) . str_pad(rand(1, 28), 2, '0', STR_PAD_LEFT) . '20' . rand(18, 23) . '0' . ($jk === 'L' ? '1' : '2') . '00' . str_pad($i + 1, 2, '0', STR_PAD_LEFT);
+            for ($i = 1; $i <= 50; $i++) {
 
-                $teacherIds[] = DB::table('teachers')->insertGetId([
-                    'user_id'    => $userId,
-                    'nama_guru'  => $namaGuru,
-                    'nip'        => substr($nip, 0, 20),
-                    'jk'         => $jk,
-                    'agama'      => $agamaList[$i % count($agamaList)],
-                    'tgl_lahir'  => Carbon::create(rand(1970, 1995), rand(1, 12), rand(1, 28))->format('Y-m-d'),
-                    'alamat'     => 'Jl. Guru No. ' . ($i + 1) . ', Kotabaru',
-                    'no_telp'    => '08' . rand(100000000, 999999999),
-                    'school_id'  => 1,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
+                $jk = $i % 2 === 0 ? 'L' : 'P';
 
-        // =========================
-        // 5. SUBJECTS
-        // =========================
-        $subjectNames = [
-            'Matematika',
-            'IPA',
-            'IPS',
-            'PKN',
-            'Bahasa Indonesia',
-            'Bahasa Inggris',
-            'Agama Islam',
-            'Seni Budaya',
-            'PJOK',
-            'Prakarya'
-        ];
-        $subjectIds = [];
-        foreach ($subjectNames as $nama) {
-            $existing     = DB::table('subjects')->where('nama_mapel', $nama)->first();
-            $subjectIds[] = $existing
-                ? $existing->id
-                : DB::table('subjects')->insertGetId([
-                    'nama_mapel' => $nama,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-        }
+                $namaDepan = $jk === 'L'
+                    ? $namaDepanLaki[array_rand($namaDepanLaki)]
+                    : $namaDepanPerempuan[array_rand($namaDepanPerempuan)];
 
-        // =========================
-        // 6. CLASSROOMS (VII-A sd IX-H = 24 kelas)
-        // =========================
-        $tingkatList  = ['VII', 'VIII', 'IX'];
-        $paralelList  = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-        $classroomIds = [];
-        $walisIndex   = 0;
+                $belakang = $namaBelakang[array_rand($namaBelakang)];
 
-        foreach ($tingkatList as $tingkat) {
-            foreach ($paralelList as $paralel) {
-                $existing       = DB::table('classrooms')
-                    ->where('tingkat', $tingkat)
-                    ->where('paralel', $paralel)
+                $namaGuru = $namaDepan . ' ' . $belakang . ' ' . $i . ', ' . $gelar[array_rand($gelar)];
+
+                $username = strtolower($namaDepan . $i);
+
+                $user = DB::table('users')
+                    ->where('username', $username)
                     ->first();
-                $classroomIds[] = $existing
-                    ? $existing->id
-                    : DB::table('classrooms')->insertGetId([
-                        'tingkat'    => $tingkat,
-                        'paralel'    => $paralel,
-                        'walas_id'   => $teacherIds[$walisIndex % count($teacherIds)],
+
+                if (!$user) {
+
+                    $userId = DB::table('users')->insertGetId([
+                        'username'   => $username,
+                        'password'   => Hash::make('guru123'),
+                        'role'       => 'Guru',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
-                $walisIndex++;
-            }
-        }
-
-        // =========================
-        // 7. STUDENTS (15 per kelas)
-        // =========================
-        $namaLaki = [
-            'Ahmad',
-            'Budi',
-            'Dian',
-            'Eko',
-            'Fajar',
-            'Gilang',
-            'Hendra',
-            'Ivan',
-            'Joko',
-            'Kevin',
-            'Luthfi',
-            'Maulana',
-            'Nanda',
-            'Omar',
-            'Putra',
-            'Reza',
-            'Sandi',
-            'Taufik',
-            'Umar',
-            'Wahyu'
-        ];
-        $namaPerempuan = [
-            'Aini',
-            'Bunga',
-            'Citra',
-            'Desi',
-            'Ella',
-            'Fani',
-            'Gita',
-            'Hana',
-            'Indah',
-            'Julia',
-            'Kiki',
-            'Lisa',
-            'Maya',
-            'Nisa',
-            'Putri',
-            'Rani',
-            'Sari',
-            'Tari',
-            'Umi',
-            'Vivi'
-        ];
-        $namaBelakangSiswa = [
-            'Santoso',
-            'Rahayu',
-            'Pratama',
-            'Lestari',
-            'Wijaya',
-            'Kurnia',
-            'Saputra',
-            'Hidayat',
-            'Nugroho',
-            'Purnama',
-            'Susanto',
-            'Wibowo',
-            'Gunawan',
-            'Hartono',
-            'Siregar'
-        ];
-
-        $studentIds = [];
-        $nisCounter = 10000;
-
-        foreach ($classroomIds as $classroomId) {
-            $studentIds[$classroomId] = [];
-            for ($i = 0; $i < 40; $i++) {
-                $jk        = $i % 2 === 0 ? 'L' : 'P';
-                $namaDepan = $jk === 'L'
-                    ? $namaLaki[$i % count($namaLaki)]
-                    : $namaPerempuan[$i % count($namaPerempuan)];
-                $nisCounter++;
-
-                $existingStudent = DB::table('students')->where('nis', (string) $nisCounter)->first();
-                if ($existingStudent) {
-                    $studentIds[$classroomId][] = $existingStudent->id;
-                    continue;
+                } else {
+                    $userId = $user->id;
                 }
 
-                $studentIds[$classroomId][] = DB::table('students')->insertGetId([
-                    'nama'         => $namaDepan . ' ' . $namaBelakangSiswa[$i % count($namaBelakangSiswa)],
-                    'nis'          => (string) $nisCounter,
-                    'jk'           => $jk,
-                    'agama'        => 'Islam',
-                    'tgl_lahir'    => Carbon::create(rand(2009, 2012), rand(1, 12), rand(1, 28))->format('Y-m-d'),
-                    'alamat'       => 'Jl. Siswa No. ' . rand(1, 100) . ', Kotabaru',
-                    'no_telp'      => '08' . rand(100000000, 999999999),
-                    'no_telp_ortu' => '08' . rand(100000000, 999999999),
-                    'classroom_id' => $classroomId,
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
-                ]);
+                $teacher = DB::table('teachers')
+                    ->where('user_id', $userId)
+                    ->first();
+
+                if ($teacher) {
+
+                    $teacherIds[] = $teacher->id;
+                } else {
+
+                    $teacherIds[] = DB::table('teachers')->insertGetId([
+                        'user_id'    => $userId,
+                        'nama_guru'  => $namaGuru,
+                        'nip'        => rand(100000000000000000, 999999999999999999),
+                        'jk'         => $jk,
+                        'agama'      => $agamaList[array_rand($agamaList)],
+                        'tgl_lahir'  => Carbon::create(rand(1970, 1995), rand(1, 12), rand(1, 28)),
+                        'alamat'     => 'Jl. Guru No. ' . rand(1, 200),
+                        'no_telp'    => '08' . rand(100000000, 999999999),
+                        'school_id'  => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
-        }
 
-        // =========================
-        // 8. SCHEDULES
-        // =========================
-        $hariList     = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            /*
+            |--------------------------------------------------------------------------
+            | 5. SUBJECTS
+            |--------------------------------------------------------------------------
+            */
 
-        $jamList = [
-            ['jam_mulai' => '07:30', 'jam_habis' => '09:00'],
-            ['jam_mulai' => '09:00', 'jam_habis' => '10:30'],
-            ['jam_mulai' => '10:30', 'jam_habis' => '12:00'],
-            ['jam_mulai' => '13:00', 'jam_habis' => '14:00'],
-        ];
+            $subjects = [
+                'Matematika',
+                'IPA',
+                'IPS',
+                'PKN',
+                'Bahasa Indonesia',
+                'Bahasa Inggris',
+                'Agama Islam',
+                'Seni Budaya',
+                'PJOK',
+                'Prakarya'
+            ];
 
-        $scheduleIds  = [];
-        $teacherIndex = 0;
-        $subjectIndex = 0;
+            $subjectIds = [];
 
-        foreach ($classroomIds as $classroomId) {
-            $scheduleIds[$classroomId] = [];
+            foreach ($subjects as $subject) {
 
-            foreach ($hariList as $hari) {
-                foreach ($jamList as $jam) {
+                $existing = DB::table('subjects')
+                    ->where('nama_mapel', $subject)
+                    ->first();
 
-                    $existing = DB::table('schedules')
-                        ->where('classroom_id', $classroomId)
-                        ->where('hari', $hari)
-                        ->where('jam_mulai', $jam['jam_mulai'])
+                if ($existing) {
+
+                    $subjectIds[] = $existing->id;
+                } else {
+
+                    $subjectIds[] = DB::table('subjects')->insertGetId([
+                        'nama_mapel' => $subject,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | 6. CLASSROOMS
+            |--------------------------------------------------------------------------
+            */
+
+            $tingkatList = ['VII', 'VIII', 'IX'];
+            $paralelList = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+            $classroomIds = [];
+
+            $walasIndex = 0;
+
+            foreach ($tingkatList as $tingkat) {
+
+                foreach ($paralelList as $paralel) {
+
+                    $existing = DB::table('classrooms')
+                        ->where('tingkat', $tingkat)
+                        ->where('paralel', $paralel)
                         ->first();
 
-                    $scheduleIds[$classroomId][] = $existing
-                        ? $existing->id
-                        : DB::table('schedules')->insertGetId([
-                            'academic_year_id' => $academicYearId,
-                            'semester' => $academicYearSemester,
-                            'teacher_id'       => $teacherIds[$teacherIndex % count($teacherIds)],
-                            'subject_id'       => $subjectIds[$subjectIndex % count($subjectIds)],
-                            'classroom_id'     => $classroomId,
-                            'hari'             => $hari,
-                            'jam_mulai'        => $jam['jam_mulai'],
-                            'jam_habis'        => $jam['jam_habis'],
+                    if ($existing) {
+
+                        $classroomIds[] = $existing->id;
+                    } else {
+
+                        $classroomIds[] = DB::table('classrooms')->insertGetId([
+                            'tingkat'    => $tingkat,
+                            'paralel'    => $paralel,
+                            'walas_id'   => $teacherIds[$walasIndex % count($teacherIds)],
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+
+                    $walasIndex++;
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | 7. STUDENTS
+            |--------------------------------------------------------------------------
+            */
+
+            $studentIds = [];
+
+            $nisCounter = 10000;
+
+            foreach ($classroomIds as $classroomId) {
+
+                $studentIds[$classroomId] = [];
+
+                $studentBatch = [];
+
+                for ($i = 1; $i <= 40; $i++) {
+
+                    $jk = $i % 2 === 0 ? 'L' : 'P';
+
+                    $namaDepan = $jk === 'L'
+                        ? $namaDepanLaki[array_rand($namaDepanLaki)]
+                        : $namaDepanPerempuan[array_rand($namaDepanPerempuan)];
+
+                    $nama = $namaDepan . ' ' . $namaBelakang[array_rand($namaBelakang)];
+
+                    $nisCounter++;
+
+                    $studentBatch[] = [
+                        'nama'         => $nama,
+                        'nis'          => (string)$nisCounter,
+                        'jk'           => $jk,
+                        'agama'        => 'Islam',
+                        'tgl_lahir'    => Carbon::create(rand(2009, 2012), rand(1, 12), rand(1, 28)),
+                        'alamat'       => 'Jl. Siswa No. ' . rand(1, 100),
+                        'no_telp'      => '08' . rand(100000000, 999999999),
+                        'no_telp_ortu' => '08' . rand(100000000, 999999999),
+                        'classroom_id' => $classroomId,
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ];
+                }
+
+                DB::table('students')->insert($studentBatch);
+
+                $ids = DB::table('students')
+                    ->where('classroom_id', $classroomId)
+                    ->pluck('id')
+                    ->toArray();
+
+                $studentIds[$classroomId] = $ids;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | 8. SCHEDULES
+            |--------------------------------------------------------------------------
+            */
+
+            $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+
+            $jamList = [
+                ['jam_mulai' => '07:30', 'jam_habis' => '09:00'],
+                ['jam_mulai' => '09:00', 'jam_habis' => '10:30'],
+                ['jam_mulai' => '10:30', 'jam_habis' => '12:00'],
+                ['jam_mulai' => '13:00', 'jam_habis' => '14:30'],
+            ];
+
+            $scheduleIds = [];
+
+            foreach ($academicYears as $academicYear) {
+
+                foreach ($classroomIds as $classroomId) {
+
+                    $scheduleIds[$classroomId] = [];
+
+                    foreach ($hariList as $hari) {
+
+                        foreach ($jamList as $jam) {
+
+                            // random kosong
+                            if (rand(1, 100) <= 20) {
+                                continue;
+                            }
+
+                            $scheduleId = DB::table('schedules')->insertGetId([
+                                'academic_year_id' => $academicYear->id,
+                                'semester'         => $academicYear->semester,
+                                'teacher_id'       => $teacherIds[array_rand($teacherIds)],
+                                'subject_id'       => $subjectIds[array_rand($subjectIds)],
+                                'classroom_id'     => $classroomId,
+                                'hari'             => $hari,
+                                'jam_mulai'        => $jam['jam_mulai'],
+                                'jam_habis'        => $jam['jam_habis'],
+                                'created_at'       => now(),
+                                'updated_at'       => now(),
+                            ]);
+
+                            $scheduleIds[$classroomId][] = $scheduleId;
+                        }
+                    }
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | 9. ATTENDANCES
+            |--------------------------------------------------------------------------
+            */
+
+            $statusList = [
+                'Hadir',
+                'Hadir',
+                'Hadir',
+                'Hadir',
+                'Izin',
+                'Sakit',
+                'Alpa'
+            ];
+
+            foreach ($scheduleIds as $classroomId => $scheduleList) {
+
+                foreach ($scheduleList as $scheduleId) {
+
+                    $schedule = DB::table('schedules')->find($scheduleId);
+
+                    for ($week = 0; $week < 8; $week++) {
+
+                        // 15% guru tidak absen
+                        if (rand(1, 100) <= 15) {
+                            continue;
+                        }
+
+                        $hariIndex = array_search($schedule->hari, $hariList);
+
+                        $tanggal = Carbon::now()
+                            ->subWeeks($week)
+                            ->startOfWeek()
+                            ->addDays($hariIndex)
+                            ->toDateString();
+
+                        $attendanceId = DB::table('attendances')->insertGetId([
+                            'schedule_id'      => $scheduleId,
+                            'tanggal'          => $tanggal,
+                            'academic_year_id' => $schedule->academic_year_id,
+                            'semester'         => $schedule->semester,
                             'created_at'       => now(),
                             'updated_at'       => now(),
                         ]);
 
-                    $teacherIndex++;
-                    $subjectIndex++;
-                }
-            }
-        }
+                        $details = [];
 
-        // =========================
-        // 9. ATTENDANCES + DETAILS
-        // =========================
-        $statusList = ['Hadir', 'Hadir', 'Hadir', 'Hadir', 'Hadir', 'Izin', 'Sakit', 'Alpa'];
+                        foreach ($studentIds[$classroomId] as $studentId) {
 
-        for ($week = 0; $week < 4; $week++) {
-            foreach ($classroomIds as $classroomId) {
-                foreach ($scheduleIds[$classroomId] as $scheduleId) {
-                    $schedule  = DB::table('schedules')->find($scheduleId);
-                    $hariIndex = array_search($schedule->hari, $hariList);
-                    $tanggal   = Carbon::now()->subWeeks($week)->startOfWeek()->addDays($hariIndex)->toDateString();
+                            $details[] = [
+                                'attendance_id' => $attendanceId,
+                                'student_id'    => $studentId,
+                                'status'        => $statusList[array_rand($statusList)],
+                                'created_at'    => now(),
+                                'updated_at'    => now(),
+                            ];
+                        }
 
-                    $existing = DB::table('attendances')
-                        ->where('schedule_id', $scheduleId)
-                        ->where('tanggal', $tanggal)
-                        ->first();
-
-                    if ($existing) continue;
-
-                    $attendanceId = DB::table('attendances')->insertGetId([
-                        'schedule_id'      => $scheduleId,
-                        'tanggal'          => $tanggal,
-                        'academic_year_id' => $academicYearId,
-                        'semester' => $academicYearSemester,
-                        'created_at'       => now(),
-                        'updated_at'       => now(),
-                    ]);
-
-                    foreach ($studentIds[$classroomId] as $studentId) {
-                        DB::table('attendance_details')->insert([
-                            'attendance_id' => $attendanceId,
-                            'student_id'    => $studentId,
-                            'status'        => $statusList[array_rand($statusList)],
-                            'created_at'    => now(),
-                            'updated_at'    => now(),
-                        ]);
+                        DB::table('attendance_details')->insert($details);
                     }
                 }
             }
-        }
 
-        // =========================
-        // 10. EVALUATIONS + DETAILS
-        // =========================
-        $jenisEval = ['Tugas', 'UH', 'UTS', 'UAS'];
-        $evalNames = [
-            'Tugas' => ['Tugas 1', 'Tugas 2', 'Tugas 3'],
-            'UH'    => ['UH 1', 'UH 2'],
-            'UTS'   => ['UTS Genap'],
-            'UAS'   => ['UAS Genap'],
-        ];
+            /*
+            |--------------------------------------------------------------------------
+            | 10. EVALUATIONS
+            |--------------------------------------------------------------------------
+            */
 
-        foreach ($classroomIds as $classroomId) {
-            foreach ($scheduleIds[$classroomId] as $scheduleId) {
-                $schedule = DB::table('schedules')->find($scheduleId);
+            $jenisEval = ['Tugas', 'UH', 'UTS', 'UAS'];
 
-                foreach ($jenisEval as $jenis) {
-                    foreach ($evalNames[$jenis] as $namaEval) {
-                        $existing = DB::table('evaluations')
-                            ->where('schedule_id', $scheduleId)
-                            ->where('jenis', $jenis)
-                            ->where('nama_penilaian', $namaEval)
-                            ->first();
+            foreach ($scheduleIds as $classroomId => $scheduleList) {
 
-                        if ($existing) continue;
+                foreach ($scheduleList as $scheduleId) {
+
+                    $schedule = DB::table('schedules')->find($scheduleId);
+
+                    foreach ($jenisEval as $jenis) {
 
                         $evaluationId = DB::table('evaluations')->insertGetId([
                             'schedule_id'      => $scheduleId,
                             'subject_id'       => $schedule->subject_id,
                             'classroom_id'     => $classroomId,
                             'teacher_id'       => $schedule->teacher_id,
-                            'academic_year_id' => $academicYearId,
-                            'semester' => $academicYearSemester,
+                            'academic_year_id' => $schedule->academic_year_id,
+                            'semester'         => $schedule->semester,
                             'jenis'            => $jenis,
-                            'nama_penilaian'   => $namaEval,
-                            'tanggal'          => Carbon::now()->subDays(rand(1, 90))->format('Y-m-d'),
+                            'nama_penilaian'   => $jenis . ' ' . rand(1, 3),
+                            'tanggal'          => now()->subDays(rand(1, 120)),
                             'created_at'       => now(),
                             'updated_at'       => now(),
                         ]);
 
+                        $details = [];
+
                         foreach ($studentIds[$classroomId] as $studentId) {
-                            DB::table('evaluation_details')->insert([
+
+                            $roll = rand(1, 100);
+
+                            $nilai = match (true) {
+                                $roll <= 10 => rand(40, 59),
+                                $roll <= 80 => rand(60, 85),
+                                default     => rand(86, 100),
+                            };
+
+                            $details[] = [
                                 'evaluation_id' => $evaluationId,
                                 'student_id'    => $studentId,
-                                'nilai'         => rand(60, 100),
+                                'nilai'         => $nilai,
                                 'created_at'    => now(),
                                 'updated_at'    => now(),
-                            ]);
+                            ];
                         }
+
+                        DB::table('evaluation_details')->insert($details);
                     }
                 }
             }
-        }
 
-        $this->command->info('Seeder selesai!');
-        $this->command->info('Admin -> username: admin    | password: admin123');
-        $this->command->info('Guru  -> username: [nama]   | password: guru123');
+            $this->command->info('Seeder selesai!');
+            $this->command->info('Admin -> username: admin | password: admin123');
+            $this->command->info('Guru  -> password: guru123');
+        });
     }
 }
