@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
@@ -50,10 +51,8 @@ class AdminController extends Controller
         COUNT(DISTINCT schedules.id) as total_jadwal
     ")
             ->groupBy('teachers.id', 'teachers.nama_guru')
-            ->orderByDesc('total_absen')
-            ->paginate(10)
-            ->withQueryString()
-            ->through(function ($item) use ($startDate, $endDate) {
+            ->get()
+            ->map(function ($item) use ($startDate, $endDate) {
 
                 $start  = \Carbon\Carbon::parse($startDate);
                 $end    = \Carbon\Carbon::parse($endDate);
@@ -66,7 +65,6 @@ class AdminController extends Controller
                     ? min(100, round(($item->total_absen / $expectedPertemuan) * 100))
                     : 0;
 
-                // Status badge
                 $item->statusLabel = match (true) {
                     $item->persentase >= 80 => 'Aktif',
                     $item->persentase >= 50 => 'Cukup',
@@ -80,8 +78,42 @@ class AdminController extends Controller
                 };
 
                 return $item;
-            });
+            })
+            ->sortByDesc('persentase')
+            ->values();
 
+
+        // ==========================
+        // PAGINATION MANUAL
+        // ==========================
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+
+        $perPage = 10;
+
+        $currentItems = $keaktifanGuru
+            ->slice(($currentPage - 1) * $perPage, $perPage)
+            ->values();
+
+        $teachers = new LengthAwarePaginator(
+            $currentItems,
+            $keaktifanGuru->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+
+
+        // ==========================
+        // TOP PERFORMER
+        // ==========================
+
+        $topPerformers = $keaktifanGuru
+            ->take(5)
+            ->values();
         // ✅ FIX: guru aktif = persentase >= 80, bukan sekadar total_absen > 0
         $totalGuruAktif = $keaktifanGuru->where('persentase', '>=', 80)->count();
         $totalGuru      = $keaktifanGuru->count();
@@ -154,10 +186,11 @@ class AdminController extends Controller
             'chartData',
             'allYears',
             'activeYear',
-            'topPerformer',       // ✅ baru
-            'guruTermalas',       // ✅ baru
-            'rataRataGuru',       // ✅ baru
-            'hariTerAktifLabel',  // ✅ baru
+            'topPerformer',
+            'guruTermalas',
+            'rataRataGuru',
+            'hariTerAktifLabel',
+            'teachers'
         ));
     }
 

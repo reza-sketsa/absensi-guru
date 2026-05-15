@@ -257,9 +257,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($keaktifanGuru as $i => $guru)
+                        @forelse($teachers as $i => $guru)
                             <tr>
-                                <td class="ps-4 text-muted small">{{ $i + 1 }}</td>
+                                <td class="ps-4 text-muted small">
+                                    {{ $teachers->firstItem() + $i }}
+                                </td>
                                 <td class="fw-semibold">{{ $guru->nama_guru }}</td>
                                 <td class="text-center text-muted small d-none d-md-table-cell">
                                     {{ $guru->total_jadwal }}
@@ -298,16 +300,14 @@
                         @endforelse
                     </tbody>
                 </table>
-                @if ($keaktifanGuru->hasPages())
-                    <div class="card-footer bg-white border-0 py-3 px-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">
-                                {{ $keaktifanGuru->firstItem() }}–{{ $keaktifanGuru->lastItem() }}
-                                dari {{ $keaktifanGuru->total() }} guru
-                            </small>
+                @if ($teachers->hasPages())
+                    <div class="d-flex justify-content-between align-items-center mt-4 px-1">
+                        <small class="text-muted">
+                            {{ $teachers->firstItem() }}–{{ $teachers->lastItem() }}
+                            dari {{ $teachers->total() }} guru
+                        </small>
 
-                            {{ $keaktifanGuru->links('pagination::bootstrap-5') }}
-                        </div>
+                        {{ $teachers->links('pagination::bootstrap-5') }}
                     </div>
                 @endif
             </div>
