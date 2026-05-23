@@ -12,9 +12,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="{{ asset('css/app-custom.css') }}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
 </head>
 
-<!-- PERBAIKAN 1: HAPUS bg-light, biar body background dari custom CSS yang dipakai -->
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+</script>
 
 <body class="d-flex flex-column min-vh-100">
 

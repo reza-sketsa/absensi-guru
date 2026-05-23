@@ -5,7 +5,7 @@
     <div class="container py-4 pb-5 mb-4">
 
         {{-- Header --}}
-        <div class="card border-0 rounded-3 mb-3 dashboard-header-gradient">
+        <div class="card border-0 rounded-3 mb-3 bg-gradient-header shadow">
             <div class="card-body px-4 py-3">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
