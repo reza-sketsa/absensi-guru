@@ -101,8 +101,12 @@ Route::middleware('auth')->group(function () {
 
 use Illuminate\Support\Facades\Artisan;
 
-Route::get('/jalankan-seeder-rahasia', function () {
-    // Menjalankan seeder untuk mengisi akun admin
-    Artisan::call('db:seed');
-    return 'Database berhasil di-seed! Silakan coba login lagi.';
+Route::get('/gas-seeder', function () {
+    try {
+        // Memanggil DatabaseSeeder bawaan yang sudah kamu buat
+        Artisan::call('db:seed');
+        return 'Mantap! Semua data dummy dan akun admin berhasil dimasukkan ke database Railway.';
+    } catch (\Exception $e) {
+        return 'Waduh, gagal jalan karena: ' . $e->getMessage();
+    }
 });
