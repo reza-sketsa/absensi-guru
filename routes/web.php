@@ -98,15 +98,3 @@ Route::middleware('auth')->group(function () {
         Route::post('/academic-year/{id}/activate', [AcademicYearController::class, 'activate'])->name('tahun-ajaran.activate');
     });
 });
-
-use Illuminate\Support\Facades\Artisan;
-
-Route::get('/gas-seeder', function () {
-    try {
-        // Memanggil DatabaseSeeder bawaan yang sudah kamu buat
-        Artisan::call('db:seed');
-        return 'Mantap! Semua data dummy dan akun admin berhasil dimasukkan ke database Railway.';
-    } catch (\Exception $e) {
-        return 'Waduh, gagal jalan karena: ' . $e->getMessage();
-    }
-});
