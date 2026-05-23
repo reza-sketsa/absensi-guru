@@ -98,3 +98,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/academic-year/{id}/activate', [AcademicYearController::class, 'activate'])->name('tahun-ajaran.activate');
     });
 });
+
+use Illuminate\Support\Facades\Artisan;
+
+Route::get('/jalankan-seeder-rahasia', function () {
+    // Menjalankan seeder untuk mengisi akun admin
+    Artisan::call('db:seed');
+    return 'Database berhasil di-seed! Silakan coba login lagi.';
+});
