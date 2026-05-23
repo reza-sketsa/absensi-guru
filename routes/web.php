@@ -61,9 +61,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/penilaian', [EvaluationController::class, 'index'])->name('penilaian.index');
         Route::get('/evaluations/trash', [EvaluationController::class, 'trash'])->name('evaluations.trash');
         Route::post('/evaluations/{id}/restore', [EvaluationController::class, 'restore'])->name('evaluations.restore');
-        Route::get('/evaluations/create/{schedule_id}', [EvaluationController::class, 'create'])->name('evaluations.create');
         Route::delete('/evaluations/{id}/force-delete', [EvaluationController::class, 'forceDeleteEvaluation'])->name('evaluations.force-delete');
-        Route::resource('evaluations', EvaluationController::class);
+
+        // 1. Rute kustom untuk create dengan parameter schedule_id tetap di sini
+        Route::get('/evaluations/create/{schedule_id}', [EvaluationController::class, 'create'])->name('evaluations.create');
+
+        // 2. Tambahkan ->except(['create']) pada rute resource agar tidak membuat duplikat nama
+        Route::resource('evaluations', EvaluationController::class)->except(['create']);
     });
 
     // ------------------------------------------
