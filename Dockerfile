@@ -42,4 +42,4 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/
 EXPOSE 80
 
 # Jalankan Nginx di background, dan PHP-FPM di foreground sebagai pengunci container
-CMD nginx && php-fpm
+CMD php artisan serve --host=0.0.0.0 --port=${PORT}
