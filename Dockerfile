@@ -26,12 +26,20 @@ WORKDIR /var/www
 # Copy existing application directory contents
 COPY . /var/www
 
+# KUNCI UTAMA: Berikan hak akses folder agar Laravel bisa menulis log/cache
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
 # Install dependencies
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# Setup Nginx configuration
+# Setup Nginx configuration (Langsung timpa ke sites-enabled agar pasti terbaca)
+COPY .docker/nginx.conf /etc/nginx/sites-enabled/default
 COPY .docker/nginx.conf /etc/nginx/sites-available/default
 
-# Expose port 80 and start nginx and php-fpm server
+# Paksa Nginx mengirim log error-nya ke konsol Railway
+RUN ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/nginx/error.log
+
 EXPOSE 80
-CMD service nginx start && php-fpm -F
+
+# Jalankan Nginx di background, dan PHP-FPM di foreground sebagai pengunci container
+CMD nginx && php-fpm
