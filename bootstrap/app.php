@@ -1,4 +1,6 @@
 <?php
+// Pastikan folder cache view mengarah ke /tmp yang writable di Vercel
+$app->useStoragePath(env('APP_STORAGE', '/tmp'));
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
