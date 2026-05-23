@@ -21,6 +21,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
             guests: '/login',
             users: '/admin/dashboard'
         );
+
+        $middleware->trustProxies(at: '*'); // tambah di sini
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
