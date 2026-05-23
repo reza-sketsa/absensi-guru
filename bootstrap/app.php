@@ -1,12 +1,11 @@
 <?php
-// Pastikan folder cache view mengarah ke /tmp yang writable di Vercel
-$app->useStoragePath(env('APP_STORAGE', '/tmp'));
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-return Application::configure(basePath: dirname(__DIR__))
+// 1. Buat instance application dan tampung ke variabel $app
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
         api: __DIR__ . '/../routes/api.php',
@@ -26,3 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+
+// 2. Sekarang variabel $app sudah ada, baru kita set storage path-nya
+$app->useStoragePath(env('APP_STORAGE', base_path('storage')));
+// Tips: default-nya dikembalikan ke base_path('storage') agar lokal kamu tidak bingung mencari folder /tmp milik linux.
+
+// 3. Return aplikasi ke sistem Laravel
+return $app;
