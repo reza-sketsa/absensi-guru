@@ -9,9 +9,12 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        return view('auth.login');
+        return response()->view('auth.login')->withHeaders([
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
-
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -43,10 +46,13 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/login')->withHeaders([
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 }
