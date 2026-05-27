@@ -361,18 +361,36 @@
     // AUTO-REFRESH CSRF TOKEN (Login Page)
     // =====================
     @if (Request::is('login'))
+        // Refresh saat balik ke tab
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible') {
-                fetch('/csrf-token')
-                    .then(res => res.json())
-                    .then(data => {
-                        document.querySelectorAll('input[name="_token"]')
-                            .forEach(el => el.value = data.token);
-                        document.querySelector('meta[name="csrf-token"]')
-                            ?.setAttribute('content', data.token);
-                    })
-                    .catch(() => {});
+                refreshCsrfToken();
             }
         });
+
+        // Refresh saat user klik/focus form (cover autofill)
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.querySelector('form');
+            if (loginForm) {
+                loginForm.addEventListener('focusin', refreshCsrfToken, {
+                    once: true
+                });
+            }
+
+            // Refresh sekali saat halaman load
+            refreshCsrfToken();
+        });
+
+        function refreshCsrfToken() {
+            fetch('/csrf-token')
+                .then(res => res.json())
+                .then(data => {
+                    document.querySelectorAll('input[name="_token"]')
+                        .forEach(el => el.value = data.token);
+                    document.querySelector('meta[name="csrf-token"]')
+                        ?.setAttribute('content', data.token);
+                })
+                .catch(() => {});
+        }
     @endif
 </script>
