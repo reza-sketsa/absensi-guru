@@ -1,4 +1,4 @@
-const CACHE_NAME = "siskul-v1";
+const CACHE_NAME = "siskul-v2";
 const STATIC_ASSETS = ["/css/app-custom.css"]; // hapus "/" dari sini
 
 // Route yang TIDAK boleh di-cache
