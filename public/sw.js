@@ -1,4 +1,4 @@
-const CACHE_NAME = "siskul-v2";
+const CACHE_NAME = "siskul-v3";
 const STATIC_ASSETS = ["/css/app-custom.css"];
 const EXCLUDE_FROM_CACHE = ["/login", "/logout", "/csrf-token", "/"];
 
@@ -20,7 +20,12 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
   if (EXCLUDE_FROM_CACHE.includes(url.pathname)) {
-    event.respondWith(fetch(event.request));
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // Kalau offline dan login page tidak bisa diakses, return response kosong
+        return new Response("Tidak ada koneksi internet.", { status: 503 });
+      }),
+    );
     return;
   }
 
