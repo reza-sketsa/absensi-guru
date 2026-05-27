@@ -53,7 +53,7 @@
                                     <td class="text-center pe-4">
                                         <a href="{{ route('guru.siswa.detail', $student->id) }}"
                                             class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-person-badge me-1"></i> Profil Absensi
+                                            <i class="bi bi-person-badge me-1"></i> Profil
                                         </a>
                                     </td>
                                 </tr>
