@@ -1,18 +1,19 @@
 <?php
 
+use App\Http\Controllers\Admin\AcademicYearController;
+use App\Http\Controllers\Admin\AdminController as DashboardAdmin;
+use App\Http\Controllers\Admin\ClassroomController;
+use App\Http\Controllers\Admin\ScheduleController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\SubjectController;
+use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController as DashboardGuru;
+use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\EvaluationController;
-use App\Http\Controllers\DashboardController as DashboardGuru;
-use App\Http\Controllers\Admin\AdminController as DashboardAdmin;
-use App\Http\Controllers\Admin\TeacherController;
-use App\Http\Controllers\Admin\ClassroomController;
-use App\Http\Controllers\Admin\SubjectController;
-use App\Http\Controllers\Admin\StudentController;
-use App\Http\Controllers\Admin\ScheduleController;
-use App\Http\Controllers\Admin\AcademicYearController;
 
 // ==========================================
 // PUBLIC ROUTES
@@ -45,6 +46,11 @@ Route::middleware('auth')->group(function () {
     // MODUL GURU
     // ------------------------------------------
     Route::prefix('guru')->name('guru.')->group(function () {
+        //Profile
+        Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+        Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+        // Dashboard
         Route::get('/dashboard', [DashboardGuru::class, 'guruDashboard'])->name('dashboard');
         Route::get('/siswa/{id}', [AttendanceController::class, 'showStudent'])->name('siswa.detail');
         Route::get('/kelas', [DashboardGuru::class, 'listClasses'])->name('kelas.index');

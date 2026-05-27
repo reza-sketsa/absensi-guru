@@ -34,6 +34,17 @@
                             </li>
                         @endif
 
+                        @if (Auth::user()->role == 'Guru')
+                            <li>
+                                <a class="dropdown-item px-3" href="{{ route('guru.profile') }}">
+                                    <i class="bi bi-person-circle me-2 text-primary"></i>Profil Saya
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider my-1">
+                            </li>
+                        @endif
+
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
