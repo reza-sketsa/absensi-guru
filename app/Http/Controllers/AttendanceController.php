@@ -141,17 +141,17 @@ class AttendanceController extends Controller
         // Kalkulasi insight — pindah dari blade
         $totalSemua     = array_sum($summary);
         $persenHadir    = $totalSemua > 0 ? round(($summary['Hadir'] / $totalSemua) * 100) : 0;
-        $persenColor    = $persenHadir >= 80 ? 'success' : ($persenHadir >= 60 ? 'warning' : 'danger');
+        $persenColor = $persenHadir >= 80 ? 'success' : ($persenHadir >= 70 ? 'primary' : ($persenHadir >= 60 ? 'warning' : 'danger'));
 
         $insightText  = match (true) {
             $persenHadir >= 90 => 'Kehadiran sangat baik',
-            $persenHadir >= 75 => 'Kehadiran cukup stabil',
+            $persenHadir >= 70 => 'Kehadiran baik',
             $persenHadir >= 60 => 'Perlu perhatian',
             default            => 'Kehadiran bermasalah',
         };
         $insightColor = match (true) {
             $persenHadir >= 90 => 'success',
-            $persenHadir >= 75 => 'primary',
+            $persenHadir >= 70 => 'primary',
             $persenHadir >= 60 => 'warning',
             default            => 'danger',
         };

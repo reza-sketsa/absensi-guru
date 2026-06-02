@@ -25,7 +25,7 @@
         <div class="card border-0 shadow-sm rounded-3 mb-4">
             <div class="card-header bg-white border-bottom py-3 px-4">
                 <h6 class="fw-semibold mb-0">
-                    <i class="bi bi-person-circle me-2 text-primary"></i>Data Diri
+                    <i class="bi bi-person-vcard me-2 text-primary"></i>Data Diri
                 </h6>
             </div>
             <div class="card-body px-4 py-3">

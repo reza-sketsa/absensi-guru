@@ -86,7 +86,7 @@ class DashboardController extends Controller
         // Kalkulasi global — pindah dari blade ke sini
         $totalSemua   = array_sum($stats);
         $persenGlobal = $totalSemua > 0 ? round(($stats['hadir'] / $totalSemua) * 100) : 0;
-        $persenColor  = $persenGlobal >= 80 ? 'success' : ($persenGlobal >= 60 ? 'warning' : 'danger');
+        $persenColor = $persenGlobal >= 80 ? 'success' : ($persenGlobal >= 70 ? 'primary' : ($persenGlobal >= 60 ? 'warning' : 'danger'));
 
         // Siswa alpa tertinggi
         $lowAttendanceStudents = AttendanceDetail::whereHas('attendance.schedule', fn($q) => $q->where('teacher_id', $teacherId))
@@ -130,7 +130,7 @@ class DashboardController extends Controller
                 $total = $rk->hadir + $rk->izin + $rk->sakit + $rk->alpa;
                 $rk->total    = $total;
                 $rk->persen   = $total > 0 ? round(($rk->hadir / $total) * 100) : 0;
-                $rk->color    = $rk->persen >= 80 ? 'success' : ($rk->persen >= 50 ? 'warning' : 'danger');
+                $rk->color = $rk->persen >= 80 ? 'success' : ($rk->persen >= 70 ? 'primary' : ($rk->persen >= 50 ? 'warning' : 'danger'));
                 return $rk;
             });
 
