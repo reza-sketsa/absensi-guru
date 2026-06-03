@@ -9,6 +9,7 @@ use App\Models\AttendanceDetail;
 use App\Models\Schedule;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Models\EvaluationDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -161,6 +162,37 @@ class AttendanceController extends Controller
         $statusDominanColor = $statusDominan === 'disiplin' ? 'success' : 'danger';
         $statusDominanLabel = $statusDominan === 'disiplin' ? 'Siswa Disiplin' : 'Perlu Perhatian';
 
+        // Query nilai siswa per mata pelajaran, filter by tahun ajaran
+        $evaluationDetails = EvaluationDetail::where('student_id', $id)
+            ->whereHas('evaluation', function ($q) use ($selectedYear, $teacherId) {
+                $q->where('teacher_id', $teacherId);
+                if ($selectedYear) {
+                    $q->where('academic_year_id', $selectedYear->id);
+                }
+            })
+            ->with([
+                'evaluation:id,subject_id,classroom_id,jenis,nama_penilaian,tanggal,academic_year_id',
+                'evaluation.subject:id,nama_mapel',
+                'evaluation.classroom:id,tingkat,paralel',
+            ])
+            ->orderByDesc(
+                \App\Models\Evaluation::select('tanggal')
+                    ->whereColumn('evaluations.id', 'evaluation_details.evaluation_id')
+                    ->limit(1)
+            )
+            ->get();
+
+        // Rekapitulasi nilai per mapel
+        $nilaiPerMapel = $evaluationDetails
+            ->groupBy(fn($d) => $d->evaluation?->subject?->nama_mapel ?? 'Lainnya')
+            ->map(fn($group) => [
+                'count'   => $group->count(),
+                'rata'    => round($group->avg('nilai'), 1),
+                'maks'    => $group->max('nilai'),
+                'min'     => $group->min('nilai'),
+                'mapel'   => $group->first()->evaluation?->subject?->nama_mapel ?? '-',
+            ]);
+
         return view('guru.absensi.student-detail', compact(
             'student',
             'attendanceHistory',
@@ -175,6 +207,8 @@ class AttendanceController extends Controller
             'insightColor',
             'statusDominanColor',
             'statusDominanLabel',
+            'evaluationDetails',
+            'nilaiPerMapel'
         ));
     }
 

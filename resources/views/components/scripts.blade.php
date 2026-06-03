@@ -393,4 +393,21 @@
                 .catch(() => {});
         }
     @endif
+
+    // Pertahankan tab aktif - student-detail page only
+    const studentContainer = document.querySelector('[data-student-id]');
+    if (studentContainer) {
+        const studentId = studentContainer.dataset.studentId;
+        const tabKey = 'studentDetailActiveTab_' + studentId;
+        const savedTab = localStorage.getItem(tabKey);
+        if (savedTab) {
+            const el = document.querySelector(`[data-bs-target="${savedTab}"]`);
+            if (el) bootstrap.Tab.getOrCreateInstance(el).show();
+        }
+        document.querySelectorAll('#detailTab [data-bs-toggle="pill"]').forEach(btn => {
+            btn.addEventListener('shown.bs.tab', e => {
+                localStorage.setItem(tabKey, e.target.dataset.bsTarget);
+            });
+        });
+    }
 </script>
