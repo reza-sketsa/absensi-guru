@@ -4,7 +4,7 @@
 @section('content')
     <div class="container py-4">
 
-        {{-- Header - PAKAI CLASS bg-gradient-header --}}
+        {{-- Header --}}
         <div class="card border-0 rounded-4 mb-4 bg-gradient-header shadow">
             <div class="card-body px-4 py-4">
                 <div class="d-flex justify-content-between align-items-center gap-3">
@@ -14,10 +14,15 @@
                             Total: {{ $classes->count() }} kelas terdaftar
                         </p>
                     </div>
-                    <button class="btn btn-light fw-semibold flex-shrink-0" data-bs-toggle="modal"
-                        data-bs-target="#modalTambahKelas">
-                        <i class="bi bi-plus-lg me-1"></i>Tambah Kelas
-                    </button>
+                    <div class="d-flex gap-2 flex-wrap justify-content-end">
+                        <a href="{{ route('admin.kelas.promote') }}" class="btn btn-warning btn-sm fw-semibold">
+                            <i class="bi bi-arrow-up-circle me-1"></i>Kenaikan Kelas
+                        </a>
+                        <button class="btn btn-light btn-sm fw-semibold" data-bs-toggle="modal"
+                            data-bs-target="#modalTambahKelas">
+                            <i class="bi bi-plus-lg me-1"></i>Tambah Kelas
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -83,7 +88,7 @@
 
     </div>
 
-    {{-- Modal Tambah Kelas - DIPERCANTIK --}}
+    {{-- Modal Tambah Kelas --}}
     <div class="modal fade" id="modalTambahKelas" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <form action="{{ route('admin.kelas.store') }}" method="POST"

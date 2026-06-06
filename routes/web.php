@@ -87,9 +87,19 @@ Route::middleware('auth')->group(function () {
         // Dashboard
         Route::get('/dashboard', [DashboardAdmin::class, 'index'])->name('dashboard');
 
+        // Pindah kelas individual
+        Route::post('/kelas/{kelas_id}/students/{id}/move', [StudentController::class, 'moveStudent'])->name('kelas.students.move');
+
+        // Kenaikan kelas massal
+        Route::get('/kelas/promote', [ClassroomController::class, 'promoteIndex'])->name('kelas.promote');
+        Route::post('/kelas/promote/preview', [ClassroomController::class, 'promotePreview'])->name('kelas.promote.preview');
+        Route::post('/kelas/promote/execute', [ClassroomController::class, 'promoteExecute'])->name('kelas.promote.execute');
+
+        Route::resource('kelas', ClassroomController::class)->except(['show']);
+
         // Data Master
         Route::resource('guru', TeacherController::class);
-        Route::resource('kelas', ClassroomController::class);
+        Route::resource('kelas', ClassroomController::class)->except(['show']);
         Route::resource('mapel', SubjectController::class);
         Route::resource('jadwal', ScheduleController::class);
 
@@ -102,7 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/kelas/{kelas_id}/students/{id}', [StudentController::class, 'update'])->name('kelas.students.update');
         Route::delete('/kelas/{kelas_id}/students/{id}', [StudentController::class, 'destroy'])->name('kelas.students.destroy');
 
-        // Setting Tahun Akademik (Fixing Route Name mismatch)
+        // Setting Tahun Akademik
         Route::get('/academic-year', [AcademicYearController::class, 'index'])->name('tahun-ajaran.index');
         Route::post('/academic-year', [AcademicYearController::class, 'store'])->name('tahun-ajaran.store');
         Route::post('/academic-year/{id}/activate', [AcademicYearController::class, 'activate'])->name('tahun-ajaran.activate');
